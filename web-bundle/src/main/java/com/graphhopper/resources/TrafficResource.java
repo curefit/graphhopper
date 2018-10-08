@@ -17,6 +17,7 @@
  */
 package com.graphhopper.resources;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.graphhopper.GraphHopper;
 import com.graphhopper.helpers.DataUpdater;
 import org.slf4j.Logger;
@@ -28,6 +29,8 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * This class defines a new endpoint to submit access and speed changes to the graph.
@@ -41,22 +44,34 @@ import javax.ws.rs.core.MediaType;
 @Consumes(MediaType.APPLICATION_JSON)
 public class TrafficResource {
 
-    private GraphHopper graphHopper;
     private DataUpdater dataUpdater;
     private Logger logger = LoggerFactory.getLogger(RouteResource.class);
+    private Lock dataFeedLock = new ReentrantLock();
+
+    private GraphHopper graphHopper;
 
     @Inject
-    TrafficResource(GraphHopper graphHopper, DataUpdater dataUpdater) {
+    TrafficResource(GraphHopper graphHopper) {
+        logger.info("graphhopper is null ?: {}", graphHopper != null ? true : false);
+
         this.graphHopper = graphHopper;
-        this.dataUpdater = dataUpdater;
+        this.dataUpdater = new DataUpdater(dataFeedLock, graphHopper);
     }
 
     @POST
     @Path("feed")
     @Consumes({MediaType.APPLICATION_JSON})
-    public void feed(DataUpdater.RoadData roadData){
-        logger.info("Got call to update data {}", roadData);
-        this.dataUpdater.feed((roadData));
+    public void feed(String body){
+
+        try {
+            logger.info("Got call to update data");
+            ObjectMapper objectMapper = new ObjectMapper();
+            DataUpdater.RoadData roadData = objectMapper.readValue(body, DataUpdater.RoadData.class);
+            logger.info("To update data {}", roadData);
+            this.dataUpdater.feed((roadData));
+        } catch (Exception e){
+            this.logger.error("Error while feeding data", e);
+        }
     }
 
 }

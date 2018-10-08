@@ -175,17 +175,20 @@ function packageJar {
 ensureMaven
 
 ## now handle actions which do not take an OSM file
-if [ "$ACTION" = "clean" ]; then
+if [ "$ACTION" = "clean" ] || [ "$ACTION" = "rebuild" ]; then
  rm -rf ./android/app/target
  rm -rf ./*/target
  rm -rf ./target
- exit
-
-elif [ "$ACTION" = "build" ]; then
- packageJar
- exit  
 fi
- 
+
+if [ "$ACTION" = "build" ] || [ "$ACTION" = "rebuild" ]; then
+ packageJar
+fi
+
+if [ "$ACTION" = "build" ] || [ "$ACTION" = "clean" ] || [ "$ACTION" = "rebuild" ]; then
+ exit
+fi
+
 if [ "$FILE" = "" ]; then
   echo -e "no file specified?"
   printBashUsage

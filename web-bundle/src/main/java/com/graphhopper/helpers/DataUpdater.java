@@ -1,7 +1,6 @@
 package com.graphhopper.helpers;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.graphhopper.GraphHopper;
 import com.graphhopper.routing.util.EdgeFilter;
 import com.graphhopper.routing.util.FlagEncoder;
@@ -14,8 +13,6 @@ import gnu.trove.set.hash.TIntHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
@@ -27,10 +24,14 @@ import java.util.concurrent.locks.Lock;
  */
 public class DataUpdater {
 
-    class Point {
+    static public class Point {
 
         public final double lat;
         public final double lon;
+
+        public Point() {
+            this(0, 0);
+        }
 
         public Point(double lat, double lon) {
             this.lat = lat;
@@ -47,7 +48,7 @@ public class DataUpdater {
         }
     }
 
-    class RoadEntry {
+    static public class RoadEntry {
 
         private List<Point> points;
         private double value;
@@ -118,23 +119,29 @@ public class DataUpdater {
         }
     }
 
-    public class RoadData extends ArrayList<RoadEntry> {
+    static public class RoadData {
+        private List<RoadEntry> entries;
 
+        public RoadData() {
+        }
+
+        public List<RoadEntry> getEntries() {
+            return entries;
+        }
+
+        public void setEntries(List<RoadEntry> entries) {
+            this.entries = entries;
+        }
     }
 
 
-    @Inject
     private GraphHopper hopper;
-
-    @Inject
-    private ObjectMapper objectMapper;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Lock writeLock;
-    private final long seconds = 150;
-    private RoadData currentRoads;
 
-    public DataUpdater(Lock writeLock) {
+    public DataUpdater(Lock writeLock, GraphHopper hopper) {
+        this.hopper = hopper;
         this.writeLock = writeLock;
     }
 
@@ -149,17 +156,16 @@ public class DataUpdater {
     }
 
     private void lockedFeed(RoadData data) {
-        currentRoads = data;
         Graph graph = hopper.getGraphHopperStorage();
         FlagEncoder carEncoder = hopper.getEncodingManager().getEncoder("car");
         LocationIndex locationIndex = hopper.getLocationIndex();
 
         int errors = 0;
         int updates = 0;
-        TIntHashSet edgeIds = new TIntHashSet(data.size());
+        TIntHashSet edgeIds = new TIntHashSet(data.entries.size());
 
-        logger.info("Got {} entries for loading", data.size());
-        for (RoadEntry entry : data) {
+        logger.info("Got {} entries for loading", data.entries.size());
+        for (RoadEntry entry : data.entries) {
 
             // TODO get more than one point -> our map matching component
             Point point = entry.getPoints().get(entry.getPoints().size() / 2);
@@ -197,7 +203,7 @@ public class DataUpdater {
             }
         }
 
-        logger.info("Updated " + updates + " street elements of " + data.size() + ". Unchanged:" + (data.size() - updates) + ", errors:" + errors);
+        logger.info("Updated " + updates + " street elements of " + data.entries.size() + ". Unchanged:" + (data.entries.size() - updates) + ", errors:" + errors);
     }
 
     private final AtomicBoolean running = new AtomicBoolean(false);
@@ -207,13 +213,6 @@ public class DataUpdater {
         running.set(false);
     }
 
-    public RoadData getAll() {
-        if (currentRoads == null) {
-            return new RoadData();
-        }
-
-        return currentRoads;
-    }
 
     private class TrafficFeature {
         @JsonProperty("attributes")
