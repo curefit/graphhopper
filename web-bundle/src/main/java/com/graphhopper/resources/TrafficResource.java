@@ -20,14 +20,14 @@ package com.graphhopper.resources;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.graphhopper.GraphHopper;
 import com.graphhopper.helpers.DataUpdater;
+import com.graphhopper.routing.util.EdgeFilter;
+import com.graphhopper.storage.index.LocationIndex;
+import com.graphhopper.storage.index.QueryResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -73,5 +73,22 @@ public class TrafficResource {
             this.logger.error("Error while feeding data", e);
         }
     }
+
+
+    @GET
+    @Path("closestPoint")
+    @Produces({MediaType.APPLICATION_JSON})
+    public QueryResult closestPoint(@QueryParam("lat") Double lat, @QueryParam("lon") Double lon){
+
+        try {
+            logger.info("Call to get closest point lat {}  lon {}", lat, lon);
+            LocationIndex locationIndex = graphHopper.getLocationIndex();
+            return locationIndex.findClosest(lat, lon, EdgeFilter.ALL_EDGES);
+        } catch (Exception e){
+            this.logger.error("Error while feeding data", e);
+            throw e;
+        }
+    }
+
 
 }
