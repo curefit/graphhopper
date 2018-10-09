@@ -1,5 +1,6 @@
 package com.graphhopper.helpers;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.graphhopper.GraphHopper;
 import com.graphhopper.routing.util.EdgeFilter;
@@ -52,6 +53,7 @@ public class DataUpdater {
 
         private List<Point> points;
         private double value;
+        @JsonAlias("value_type")
         private String valueType;
         private String mode;
         private String id;
@@ -171,7 +173,7 @@ public class DataUpdater {
             Point point = entry.getPoints().get(entry.getPoints().size() / 2);
             QueryResult qr = locationIndex.findClosest(point.lat, point.lon, EdgeFilter.ALL_EDGES);
             if (!qr.isValid()) {
-                // logger.info("no matching road found for entry " + entry.getId() + " at " + point);
+                 logger.info("no matching road found for entry " + entry.getId() + " at " + point);
                 errors++;
                 continue;
             }

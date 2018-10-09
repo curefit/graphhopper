@@ -1,5 +1,12 @@
 target/
+*/target/**
 *~
+
+api/target
+core/target
+.idea
+target
+
 TODO.txt
 *-gh/
 *.osm
@@ -16,6 +23,7 @@ bin/
 android/libs/graphhopper-*-android.jar
 */nbactions.xml
 .idea/
+**
 *iml
 debug.sh
 /web/src/main/webapp/js/config/options_prod.js
@@ -54,7 +62,7 @@ package-lock.json
 .settings/
 
 # Intellij
-.idea/
+.idea/**
 *.iml
 *.iws
 
