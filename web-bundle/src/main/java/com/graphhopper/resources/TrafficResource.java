@@ -29,6 +29,8 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -76,14 +78,21 @@ public class TrafficResource {
 
 
     @GET
-    @Path("closestPoint")
+    @Path("closestEdge")
     @Produces({MediaType.APPLICATION_JSON})
-    public QueryResult closestPoint(@QueryParam("lat") Double lat, @QueryParam("lon") Double lon){
+    public Map closestPoint(@QueryParam("latlon") String latlon){
 
+        Map<String, Object> resp = new HashMap();
         try {
+            Double lat = Double.parseDouble(latlon.split(",")[0]);
+            Double lon = Double.parseDouble(latlon.split(",")[1]);
+
             logger.info("Call to get closest point lat {}  lon {}", lat, lon);
             LocationIndex locationIndex = graphHopper.getLocationIndex();
-            return locationIndex.findClosest(lat, lon, EdgeFilter.ALL_EDGES);
+            QueryResult closest = locationIndex.findClosest(lat, lon, EdgeFilter.ALL_EDGES);
+            resp.put("closest", closest);
+            resp.put("way", closest.getClosestEdge().fetchWayGeometry(1).toString());
+            return resp;
         } catch (Exception e){
             this.logger.error("Error while feeding data", e);
             throw e;
