@@ -54,8 +54,6 @@ public class TrafficResource {
 
     @Inject
     TrafficResource(GraphHopper graphHopper) {
-        logger.info("graphhopper is null ?: {}", graphHopper != null ? true : false);
-
         this.graphHopper = graphHopper;
         this.dataUpdater = new DataUpdater(dataFeedLock, graphHopper);
     }
