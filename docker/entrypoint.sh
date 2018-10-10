@@ -3,4 +3,5 @@
 # PROD Setting : The G1GC Garbage collector is used initially, but based on the metrics and performance we can try -XX:+UseConcMarkSweepGC and keep whichever workds better.
 
 
+./graphhopper.sh -a rebuild
 ./graphhopper.sh -a web -i ./osrm_location.osm.pbf
