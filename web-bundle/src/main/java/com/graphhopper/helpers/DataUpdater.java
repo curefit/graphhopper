@@ -51,22 +51,24 @@ public class DataUpdater {
 
     static public class RoadEntry {
 
+        private String id;
         private List<Point> points;
         private double value;
         @JsonAlias("value_type")
         private String valueType;
         private String mode;
-        private String id;
+        private String edgeId;
 
         public RoadEntry() {
         }
 
-        public RoadEntry(String id, List<Point> points, double value, String valueType, String mode) {
+        public RoadEntry(String id, List<Point> points, double value, String valueType, String mode, String edgeId) {
             this.points = points;
             this.value = value;
             this.valueType = valueType;
             this.mode = mode;
             this.id = id;
+            this.edgeId = edgeId;
         }
 
         public String getId() {
@@ -115,9 +117,24 @@ public class DataUpdater {
             this.mode = mode;
         }
 
+        public String getEdgeId() {
+            return edgeId;
+        }
+
+        public void setEdgeId(String edgeId) {
+            this.edgeId = edgeId;
+        }
+
         @Override
         public String toString() {
-            return "points:" + points + ", value:" + value + ", type:" + valueType + ", mode:" + mode;
+            return "RoadEntry{" +
+                    "id='" + id + '\'' +
+                    ", points=" + points +
+                    ", value=" + value +
+                    ", valueType='" + valueType + '\'' +
+                    ", mode='" + mode + '\'' +
+                    ", edgeId='" + edgeId + '\'' +
+                    '}';
         }
     }
 
@@ -164,21 +181,28 @@ public class DataUpdater {
 
         int errors = 0;
         int updates = 0;
+
         TIntHashSet edgeIds = new TIntHashSet(data.entries.size());
 
         logger.info("Got {} entries for loading", data.entries.size());
         for (RoadEntry entry : data.entries) {
 
             // TODO get more than one point -> our map matching component
+            int edgeId = -1;
             Point point = entry.getPoints().get(entry.getPoints().size() / 2);
-            QueryResult qr = locationIndex.findClosest(point.lat, point.lon, EdgeFilter.ALL_EDGES);
-            if (!qr.isValid()) {
-                 logger.info("no matching road found for entry " + entry.getId() + " at " + point);
-                errors++;
-                continue;
+            if(entry.getEdgeId() == null) {
+                QueryResult qr = locationIndex.findClosest(point.lat, point.lon, EdgeFilter.ALL_EDGES);
+                if (!qr.isValid()) {
+                    logger.info("no matching road found for entry " + entry.getId() + " at " + point);
+                    errors++;
+                    continue;
+                }
+
+                edgeId = qr.getClosestEdge().getEdge();
+            } else {
+                edgeId = Integer.parseInt(entry.getEdgeId());
             }
 
-            int edgeId = qr.getClosestEdge().getEdge();
             if (edgeIds.contains(edgeId)) {
                 // TODO this wouldn't happen with our map matching component
                 errors++;
