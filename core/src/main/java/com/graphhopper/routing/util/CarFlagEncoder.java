@@ -48,12 +48,12 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
     protected final Map<String, Integer> defaultSpeedMap = new HashMap<>();
 
     public CarFlagEncoder() {
-        this(5, 5, 0);
+        this(5, 3, 0);
     }
 
     public CarFlagEncoder(PMap properties) {
         this((int) properties.getLong("speed_bits", 5),
-                properties.getDouble("speed_factor", 5),
+                properties.getDouble("speed_factor", 3),
                 properties.getBool("turn_costs", false) ? 1 : 0);
         this.properties = properties;
         this.setBlockFords(properties.getBool("block_fords", true));
@@ -109,30 +109,50 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
         badSurfaceSpeedMap.add("compacted");
 
         // limit speed on bad surfaces to 30 km/h
-        badSurfaceSpeed = 30;
+        badSurfaceSpeed = 20;
 
         destinationSpeed = 5;
 
-        maxPossibleSpeed = 140;
+        maxPossibleSpeed = 36;//140;
 
+//        // autobahn
+//        defaultSpeedMap.put("motorway", 100);
+//        defaultSpeedMap.put("motorway_link", 70);
+//        defaultSpeedMap.put("motorroad", 90);
+//        // bundesstraße
+//        defaultSpeedMap.put("trunk", 70);
+//        defaultSpeedMap.put("trunk_link", 65);
+//        // linking bigger town
+//        defaultSpeedMap.put("primary", 65);
+//        defaultSpeedMap.put("primary_link", 60);
+//        // linking towns + villages
+//        defaultSpeedMap.put("secondary", 60);
+//        defaultSpeedMap.put("secondary_link", 50);
+//        // streets without middle line separation
+//        defaultSpeedMap.put("tertiary", 50);
+//        defaultSpeedMap.put("tertiary_link", 40);
+//        defaultSpeedMap.put("unclassified", 30);
+//        defaultSpeedMap.put("residential", 30);
+
+        int defaultSpeed = 25;
         // autobahn
-        defaultSpeedMap.put("motorway", 100);
-        defaultSpeedMap.put("motorway_link", 70);
-        defaultSpeedMap.put("motorroad", 90);
+        defaultSpeedMap.put("motorway", defaultSpeed);
+        defaultSpeedMap.put("motorway_link", defaultSpeed);
+        defaultSpeedMap.put("motorroad", defaultSpeed);
         // bundesstraße
-        defaultSpeedMap.put("trunk", 70);
-        defaultSpeedMap.put("trunk_link", 65);
+        defaultSpeedMap.put("trunk", defaultSpeed);
+        defaultSpeedMap.put("trunk_link", defaultSpeed);
         // linking bigger town
-        defaultSpeedMap.put("primary", 65);
-        defaultSpeedMap.put("primary_link", 60);
+        defaultSpeedMap.put("primary", defaultSpeed);
+        defaultSpeedMap.put("primary_link", defaultSpeed);
         // linking towns + villages
-        defaultSpeedMap.put("secondary", 60);
-        defaultSpeedMap.put("secondary_link", 50);
+        defaultSpeedMap.put("secondary", defaultSpeed);
+        defaultSpeedMap.put("secondary_link", defaultSpeed);
         // streets without middle line separation
-        defaultSpeedMap.put("tertiary", 50);
-        defaultSpeedMap.put("tertiary_link", 40);
-        defaultSpeedMap.put("unclassified", 30);
-        defaultSpeedMap.put("residential", 30);
+        defaultSpeedMap.put("tertiary", defaultSpeed);
+        defaultSpeedMap.put("tertiary_link", defaultSpeed);
+        defaultSpeedMap.put("unclassified", defaultSpeed);
+        defaultSpeedMap.put("residential", defaultSpeed);
         // spielstraße
         defaultSpeedMap.put("living_street", 5);
         defaultSpeedMap.put("service", 20);
@@ -179,7 +199,6 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
                     speed = tInt;
             }
         }
-
         return speed;
     }
 

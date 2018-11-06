@@ -46,19 +46,39 @@ public class DataFlagEncoder extends AbstractFlagEncoder {
 
     private static final Map<String, Double> DEFAULT_SPEEDS = new LinkedHashMap<String, Double>() {
         {
-            put("motorway", 100d);
-            put("motorway_link", 70d);
-            put("motorroad", 90d);
-            put("trunk", 70d);
-            put("trunk_link", 65d);
-            put("primary", 65d);
-            put("primary_link", 60d);
-            put("secondary", 60d);
-            put("secondary_link", 50d);
-            put("tertiary", 50d);
-            put("tertiary_link", 40d);
-            put("unclassified", 30d);
-            put("residential", 30d);
+//            put("motorway", 100d);
+//            put("motorway_link", 70d);
+//            put("motorroad", 90d);
+//            put("trunk", 70d);
+//            put("trunk_link", 65d);
+//            put("primary", 65d);
+//            put("primary_link", 60d);
+//            put("secondary", 60d);
+//            put("secondary_link", 50d);
+//            put("tertiary", 50d);
+//            put("tertiary_link", 40d);
+//            put("unclassified", 30d);
+//            put("residential", 30d);
+//            put("living_street", 5d);
+//            put("service", 20d);
+//            put("road", 20d);
+//            put("forestry", 15d);
+//            put("track", 15d);
+            double defaultSpeed = 25;
+            put("motorway", defaultSpeed);
+            put("motorway_link", defaultSpeed);
+            put("motorroad", defaultSpeed);
+            put("trunk", defaultSpeed);
+            put("trunk_link", defaultSpeed);
+            put("primary", defaultSpeed);
+            put("primary_link", defaultSpeed);
+            put("secondary", defaultSpeed);
+            put("secondary_link", defaultSpeed);
+            put("tertiary", defaultSpeed);
+            put("tertiary_link", defaultSpeed);
+            put("unclassified", defaultSpeed);
+            put("residential", defaultSpeed);
+
             put("living_street", 5d);
             put("service", 20d);
             put("road", 20d);
@@ -91,12 +111,12 @@ public class DataFlagEncoder extends AbstractFlagEncoder {
     private SpatialRuleLookup spatialRuleLookup = SpatialRuleLookup.EMPTY;
 
     public DataFlagEncoder() {
-        this(5, 5, 0);
+        this(5, 3, 0);
     }
 
     public DataFlagEncoder(PMap properties) {
         this((int) properties.getLong("speed_bits", 5),
-                properties.getDouble("speed_factor", 5),
+                properties.getDouble("speed_factor", 3),
                 properties.getBool("turn_costs", false) ? 1 : 0);
         this.properties = properties;
         this.setStoreHeight(properties.getBool("store_height", false));
@@ -108,7 +128,7 @@ public class DataFlagEncoder extends AbstractFlagEncoder {
         // TODO include turn information
         super(speedBits, speedFactor, maxTurnCosts);
 
-        maxPossibleSpeed = 140;
+        maxPossibleSpeed = 36;//140;
         //
         // TODO restrictions (agricultural, emergency, destination, private, delivery, customers)
         //

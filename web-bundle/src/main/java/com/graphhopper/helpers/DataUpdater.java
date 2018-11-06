@@ -200,7 +200,7 @@ public class DataUpdater {
 
                 edgeId = qr.getClosestEdge().getEdge();
             } else {
-                edgeId = Integer.parseInt(entry.getEdgeId());
+                edgeId = (int)Double.parseDouble(entry.getEdgeId()) ;
             }
 
             if (edgeIds.contains(edgeId)) {
