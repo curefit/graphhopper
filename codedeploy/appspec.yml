@@ -2,10 +2,10 @@ version: 0.0
 os: linux
 files:
   - source: /
-    destination: /home/ubuntu/graphhopper
+    destination: /home/ubuntu/graphhopper-traffic
 
 permissions:
-  - object: /home/ubuntu/graphhopper
+  - object: /home/ubuntu/graphhopper-traffic
     pattern: "**"
     owner: ubuntu
     mode: 777
