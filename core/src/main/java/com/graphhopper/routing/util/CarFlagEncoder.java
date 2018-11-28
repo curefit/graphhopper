@@ -135,7 +135,7 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
 //        defaultSpeedMap.put("residential", 30);
 
         int defaultSpeed = 14;
-        // autobahn
+        // autobahngit
         defaultSpeedMap.put("motorway", defaultSpeed);
         defaultSpeedMap.put("motorway_link", defaultSpeed);
         defaultSpeedMap.put("motorroad", defaultSpeed);
