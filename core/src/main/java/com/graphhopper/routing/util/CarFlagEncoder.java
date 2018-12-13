@@ -87,6 +87,10 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
         defaultSpeedMap.put("residential", defaultSpeed);
     }
 
+    public Integer getDefaultSpeedInKmph() {
+        return this.defaultSpeedInKmph;
+    }
+
     public CarFlagEncoder(int speedBits, double speedFactor, int maxTurnCosts) {
         super(speedBits, speedFactor, maxTurnCosts);
         restrictions.addAll(Arrays.asList("motorcar", "motor_vehicle", "vehicle", "access"));

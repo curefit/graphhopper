@@ -958,11 +958,16 @@ public class GraphHopper implements GraphHopperAPI {
         return response;
     }
 
-    private FlagEncoder getEncoderForSpeed(Integer speed) {
+    private FlagEncoder getEncoderForSpeed(CarFlagEncoder encoder, Integer speed) {
         if(this.speedToEncoder.containsKey(speed)){
             return this.speedToEncoder.get(speed);
         }
         synchronized (this.speedToEncoder) {
+
+            if(!this.speedToEncoder.containsKey(encoder.getDefaultSpeedInKmph())){
+                this.speedToEncoder.put(speed, encoder);
+            }
+
             if(this.speedToEncoder.containsKey(speed)){
                 return this.speedToEncoder.get(speed);
             }
@@ -1006,7 +1011,7 @@ public class GraphHopper implements GraphHopperAPI {
             FlagEncoder encoder = encodingManager.getEncoder(vehicle);
 
             if(encoder instanceof CarFlagEncoder && request.getDefaultSpeedInKmph() != null) {
-                encoder = this.getEncoderForSpeed(request.getDefaultSpeedInKmph());
+                encoder = this.getEncoderForSpeed((CarFlagEncoder)encoder, request.getDefaultSpeedInKmph());
             }
 
 
