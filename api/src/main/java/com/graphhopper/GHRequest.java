@@ -41,6 +41,7 @@ public class GHRequest {
     private List<String> pointHints = new ArrayList<>();
     private List<String> pathDetails = new ArrayList<>();
     private String algo = "";
+    private Integer defaultSpeedInKmph = null;
     private boolean possibleToAdd = false;
     private Locale locale = Locale.US;
 
@@ -234,6 +235,15 @@ public class GHRequest {
      */
     public GHRequest setVehicle(String vehicle) {
         hints.setVehicle(vehicle);
+        return this;
+    }
+
+    public Integer getDefaultSpeedInKmph() {
+        return defaultSpeedInKmph;
+    }
+
+    public GHRequest setDefaultSpeedInKmph(Integer defaultSpeedInKmph) {
+        this.defaultSpeedInKmph = defaultSpeedInKmph;
         return this;
     }
 

@@ -47,6 +47,8 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
      */
     protected final Map<String, Integer> defaultSpeedMap = new HashMap<>();
 
+    private int defaultSpeedInKmph;
+
     public CarFlagEncoder() {
         this(5, 3, 0);
     }
@@ -62,6 +64,27 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
 
     public CarFlagEncoder(String propertiesStr) {
         this(new PMap(propertiesStr));
+    }
+
+    public void setDefaultSpeed(int defaultSpeed) {
+        this.defaultSpeedInKmph = defaultSpeed;
+        defaultSpeedMap.put("motorway", defaultSpeed);
+        defaultSpeedMap.put("motorway_link", defaultSpeed);
+        defaultSpeedMap.put("motorroad", defaultSpeed);
+        // bundesstraße
+        defaultSpeedMap.put("trunk", defaultSpeed);
+        defaultSpeedMap.put("trunk_link", defaultSpeed);
+        // linking bigger town
+        defaultSpeedMap.put("primary", defaultSpeed);
+        defaultSpeedMap.put("primary_link", defaultSpeed);
+        // linking towns + villages
+        defaultSpeedMap.put("secondary", defaultSpeed);
+        defaultSpeedMap.put("secondary_link", defaultSpeed);
+        // streets without middle line separation
+        defaultSpeedMap.put("tertiary", defaultSpeed);
+        defaultSpeedMap.put("tertiary_link", defaultSpeed);
+        defaultSpeedMap.put("unclassified", defaultSpeed);
+        defaultSpeedMap.put("residential", defaultSpeed);
     }
 
     public CarFlagEncoder(int speedBits, double speedFactor, int maxTurnCosts) {
@@ -134,8 +157,7 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
 //        defaultSpeedMap.put("unclassified", 30);
 //        defaultSpeedMap.put("residential", 30);
 
-        int defaultSpeed = 10;
-        // autobahngit
+        /*// autobahngit
         defaultSpeedMap.put("motorway", defaultSpeed);
         defaultSpeedMap.put("motorway_link", defaultSpeed);
         defaultSpeedMap.put("motorroad", defaultSpeed);
@@ -152,7 +174,9 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
         defaultSpeedMap.put("tertiary", defaultSpeed);
         defaultSpeedMap.put("tertiary_link", defaultSpeed);
         defaultSpeedMap.put("unclassified", defaultSpeed);
-        defaultSpeedMap.put("residential", defaultSpeed);
+        defaultSpeedMap.put("residential", defaultSpeed);*/
+        this.setDefaultSpeed(10);
+
         // spielstraße
         defaultSpeedMap.put("living_street", 5);
         defaultSpeedMap.put("service", 20);

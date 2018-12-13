@@ -83,6 +83,7 @@ public class RouteResource {
             @QueryParam("weighting") @DefaultValue("fastest") String weighting,
             @QueryParam("algorithm") @DefaultValue("") String algoStr,
             @QueryParam("locale") @DefaultValue("en") String localeStr,
+            @QueryParam("default_speed") @DefaultValue("0") String defaultSpeed,
             @QueryParam(Parameters.Routing.POINT_HINT) List<String> pointHints,
             @QueryParam(Parameters.DETAILS.PATH_DETAILS) List<String> pathDetails,
             @QueryParam("heading") List<Double> favoredHeadings,
@@ -131,6 +132,19 @@ public class RouteResource {
                 put(CALC_POINTS, calcPoints).
                 put(INSTRUCTIONS, instructions).
                 put(WAY_POINT_MAX_DISTANCE, minPathPrecision);
+
+        try {
+            // Set default speed
+            if(defaultSpeed != null && defaultSpeed != "0"){
+                int speed = Integer.parseInt(defaultSpeed);
+                if(speed > 0){
+                    request.setDefaultSpeedInKmph(speed);
+                }
+            }
+        } catch (Throwable t){
+            logger.info("Unable to parse speed " + defaultSpeed);
+        }
+
 
         GHResponse ghResponse = graphHopper.route(request);
 

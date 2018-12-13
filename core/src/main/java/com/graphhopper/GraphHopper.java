@@ -118,6 +118,8 @@ public class GraphHopper implements GraphHopperAPI {
     private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     private PathDetailsBuilderFactory pathBuilderFactory = new PathDetailsBuilderFactory();
 
+    private Map<Integer, CarFlagEncoder> speedToEncoder = new HashMap<Integer, CarFlagEncoder>();
+
     public GraphHopper() {
         chFactoryDecorator.setEnabled(true);
         lmFactoryDecorator.setEnabled(false);
@@ -956,6 +958,22 @@ public class GraphHopper implements GraphHopperAPI {
         return response;
     }
 
+    private FlagEncoder getEncoderForSpeed(Integer speed) {
+        if(this.speedToEncoder.containsKey(speed)){
+            return this.speedToEncoder.get(speed);
+        }
+        synchronized (this.speedToEncoder) {
+            if(this.speedToEncoder.containsKey(speed)){
+                return this.speedToEncoder.get(speed);
+            }
+            // Create a new one
+            CarFlagEncoder ce = new CarFlagEncoder();
+            ce.setDefaultSpeed(speed);
+            this.speedToEncoder.put(speed, ce);
+        }
+        return this.speedToEncoder.get(speed);
+    }
+
     /**
      * This method calculates the alternative path list using the low level Path objects.
      */
@@ -986,6 +1004,11 @@ public class GraphHopper implements GraphHopperAPI {
                 tMode = hints.getBool(Routing.EDGE_BASED, false) ? TraversalMode.EDGE_BASED_2DIR : TraversalMode.NODE_BASED;
 
             FlagEncoder encoder = encodingManager.getEncoder(vehicle);
+
+            if(encoder instanceof CarFlagEncoder && request.getDefaultSpeedInKmph() != null) {
+                encoder = this.getEncoderForSpeed(request.getDefaultSpeedInKmph());
+            }
+
 
             boolean disableCH = hints.getBool(CH.DISABLE, false);
             if (!chFactoryDecorator.isDisablingAllowed() && disableCH)
