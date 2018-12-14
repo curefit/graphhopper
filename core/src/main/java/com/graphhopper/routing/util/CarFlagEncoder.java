@@ -22,6 +22,8 @@ import com.graphhopper.reader.ReaderWay;
 import com.graphhopper.util.Helper;
 import com.graphhopper.util.PMap;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.*;
 
 /**
@@ -85,6 +87,14 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
         defaultSpeedMap.put("tertiary_link", defaultSpeed);
         defaultSpeedMap.put("unclassified", defaultSpeed);
         defaultSpeedMap.put("residential", defaultSpeed);
+
+        // spielstraße
+        defaultSpeedMap.put("living_street", 5);
+        defaultSpeedMap.put("service", 20);
+        // unknown road
+        defaultSpeedMap.put("road", 20);
+        // forestry stuff
+        defaultSpeedMap.put("track", 15);
     }
 
     public Integer getDefaultSpeedInKmph() {
@@ -180,14 +190,6 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
         defaultSpeedMap.put("unclassified", defaultSpeed);
         defaultSpeedMap.put("residential", defaultSpeed);*/
         this.setDefaultSpeed(10);
-
-        // spielstraße
-        defaultSpeedMap.put("living_street", 5);
-        defaultSpeedMap.put("service", 20);
-        // unknown road
-        defaultSpeedMap.put("road", 20);
-        // forestry stuff
-        defaultSpeedMap.put("track", 15);
 
         init();
     }
@@ -396,5 +398,67 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
     @Override
     public String toString() {
         return "car";
+    }
+
+    private List<Field> getAllFields(List<Field> fields, Class<?> type) {
+        fields.addAll(Arrays.asList(type.getDeclaredFields()));
+
+        if (type.getSuperclass() != null) {
+            getAllFields(fields, type.getSuperclass());
+        }
+
+        return fields;
+    }
+
+    public void copyFrom(CarFlagEncoder from){
+        try {
+
+            List<Field> allFields = new ArrayList<Field>();
+            this.getAllFields(allFields, CarFlagEncoder.class);
+            for (Field declaredField : allFields) {
+                if(Modifier.isFinal(declaredField.getModifiers())){
+//                    System.out.println("Skipping field copy " + declaredField.getName());
+                    continue;
+                }
+//                System.out.println("Setting field " + declaredField.getName());
+                boolean accessible = declaredField.isAccessible();
+                declaredField.setAccessible(true);
+                Object o = null;
+                if(declaredField.getName() == "defaultSpeedMap"){
+                    o = new HashMap<String, Integer>();
+                } else {
+                    // Get existing value and set in this object
+                    o = declaredField.get(from);
+                }
+
+                declaredField.set(this, o);
+                declaredField.setAccessible(accessible);
+            }
+
+        }catch(Throwable t){
+            t.printStackTrace();
+        }
+    }
+
+    public void compare(CarFlagEncoder from) {
+        try {
+
+            List<Field> allFields = new ArrayList<Field>();
+            this.getAllFields(allFields, CarFlagEncoder.class);
+            for (Field declaredField : allFields) {
+                boolean accessible = declaredField.isAccessible();
+                declaredField.setAccessible(true);
+
+                Object fromVal = declaredField.get(from);
+                Object currentVal = declaredField.get(this);
+                if(fromVal != null && !fromVal.equals(currentVal)) {
+                    System.out.println("Mismatch for field " + declaredField.getName());
+                }
+
+                declaredField.setAccessible(accessible);
+            }
+        }catch(Throwable t){
+            t.printStackTrace();
+        }
     }
 }
