@@ -964,14 +964,15 @@ public class GraphHopper implements GraphHopperAPI {
         }
         synchronized (this.speedToEncoder) {
 
-            if(this.speedToEncoder.containsKey(speed)){
-                this.logger.info("Using pre-created encoder for speed " + speed);
-                return this.speedToEncoder.get(speed);
-            }
-
             if(!this.speedToEncoder.containsKey(encoder.getDefaultSpeedInKmph())){
                 logger.info("Setting default encoder for speed " + encoder.getDefaultSpeedInKmph());
                 this.speedToEncoder.put(encoder.getDefaultSpeedInKmph(), encoder);
+            }
+
+
+            if(this.speedToEncoder.containsKey(speed)){
+                this.logger.info("Using pre-created encoder for speed " + speed);
+                return this.speedToEncoder.get(speed);
             }
 
             // Create a new one

@@ -416,8 +416,8 @@ public class CarFlagEncoder extends AbstractFlagEncoder {
             List<Field> allFields = new ArrayList<Field>();
             this.getAllFields(allFields, CarFlagEncoder.class);
             for (Field declaredField : allFields) {
-                if(Modifier.isFinal(declaredField.getModifiers())){
-//                    System.out.println("Skipping field copy " + declaredField.getName());
+                if(Modifier.isFinal(declaredField.getModifiers()) && Modifier.isStatic(declaredField.getModifiers())){
+                    System.out.println("Skipping static field copy " + declaredField.getName());
                     continue;
                 }
 //                System.out.println("Setting field " + declaredField.getName());
