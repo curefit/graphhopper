@@ -64,7 +64,7 @@ public class DataFlagEncoder extends AbstractFlagEncoder {
 //            put("road", 20d);
 //            put("forestry", 15d);
 //            put("track", 15d);
-            double defaultSpeed = 25;
+            double defaultSpeed = 8;
             put("motorway", defaultSpeed);
             put("motorway_link", defaultSpeed);
             put("motorroad", defaultSpeed);
