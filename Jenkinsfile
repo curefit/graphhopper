@@ -3,23 +3,26 @@ pipeline {
     label "k8s-slave"
     }
   environment {
-    ORG = 'curefit'
+    ORG = 'curefoods-infra'
+    DOCKER_REGISTRY = 'gcr.io'
     APP_NAME = 'graphhopper'
+    NPM_TOKEN = credentials('npm-token')
+    GITHUB_NPM_TOKEN = credentials('github-npm-token')
     }
   stages {
     stage('Prepare Docker Image for Stage Environment') {
-      when { branch 'stage' }
+      when { branch 'curefoods-migration-gcp' }
       environment {
-        PREVIEW_VERSION = "$BUILD_NUMBER-$BRANCH_NAME".replaceAll('_','-')
+        VERSION = "$BUILD_NUMBER-$BRANCH_NAME".replaceAll('_','-')
         }
       steps {
           script{
-            def URL = "${DOCKER_REGISTRY}/${ORG}/${APP_NAME}:${PREVIEW_VERSION}"
+            def URL = "${DOCKER_REGISTRY}/${ORG}/${APP_NAME}:${VERSION}"
             buildDockerfile("${APP_NAME}", URL, "stage")
             pushDockerImage(URL)
-            updateArtifact("${DOCKER_REGISTRY}/${ORG}/${APP_NAME}", "${PREVIEW_VERSION}", "stage")
+            updateArtifact("${DOCKER_REGISTRY}/${ORG}/${APP_NAME}", "${VERSION}", "stage")
+            }
           }
-        }
       };
     stage('Prepare Docker Image for Alpha Environment') {
           when { branch 'alpha' }
@@ -37,28 +40,28 @@ pipeline {
           };
     stage('Prepare Docker Image for Production Environment') {
       when{ branch 'master'; }
-      environment {
-        RELEASE_VERSION = "$BUILD_NUMBER"
+       environment {
+        VERSION = "$BUILD_NUMBER"
         }
       steps {
           script{
-            def URL = "${DOCKER_REGISTRY}/${ORG}/${APP_NAME}:${RELEASE_VERSION}"
+            def URL = "${DOCKER_REGISTRY}/${ORG}/${APP_NAME}:${VERSION}"
             buildDockerfile("${APP_NAME}", URL, "prod")
             pushDockerImage(URL)
-            updateArtifact("${DOCKER_REGISTRY}/${ORG}/${APP_NAME}", "${RELEASE_VERSION}", "prod")
+            updateArtifact("${DOCKER_REGISTRY}/${ORG}/${APP_NAME}", "${VERSION}", "prod")
             }
-        }
+          }
       };
-    }
+  }
   post {
     success {
       cleanWs()
       }
-    }
   }
+}
 
 void buildDockerfile(appName, tag, env){
-  sh "sudo docker build -t ${tag} --build-arg TOKEN=${NPM_TOKEN} --build-arg ENVIRONMENT=${env} --build-arg APP_NAME=${appName} --network host ."
+  sh "sudo docker build -t ${tag} --build-arg NPM_TOKEN=${NPM_TOKEN} --build-arg GITHUB_NPM_TOKEN=${GITHUB_NPM_TOKEN} --build-arg ENVIRONMENT=${env} --build-arg APP_NAME=${appName} --network host ."
 }
 
 void pushDockerImage(tag){
