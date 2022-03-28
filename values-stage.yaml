@@ -14,10 +14,10 @@ deployment:
 istio:
   internal:
     hosts:
-      - graphhopper.stage.cure.fit.internal
+      - graphhopper.stage.eatfit.internal
   vpn:
     hosts:
-      - graphhopper.stage.curefit.co
+      - graphhopper.stage.eatfit.in
   mesh:
     timeout: 360s
 service:
