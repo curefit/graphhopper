@@ -8,6 +8,7 @@ pipeline {
     APP_NAME = 'graphhopper'
     NPM_TOKEN = credentials('npm-token')
     GITHUB_NPM_TOKEN = credentials('github-npm-token')
+    AWS_CRED = credentials('cf-stage')
     }
   stages {
     stage('Prepare Docker Image for Stage Environment') {
@@ -61,7 +62,7 @@ pipeline {
 }
 
 void buildDockerfile(appName, tag, env){
-  sh "sudo docker build -t ${tag} --build-arg NPM_TOKEN=${NPM_TOKEN} --build-arg GITHUB_NPM_TOKEN=${GITHUB_NPM_TOKEN} --build-arg ENVIRONMENT=${env} --build-arg APP_NAME=${appName} --network host ."
+  sh "sudo docker build -t ${tag} --build-arg NPM_TOKEN=${NPM_TOKEN} --build-arg GITHUB_NPM_TOKEN=${GITHUB_NPM_TOKEN} --build-arg AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} --build-arg AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --build-arg ENVIRONMENT=${env} --build-arg APP_NAME=${appName} --network host ."
 }
 
 void pushDockerImage(tag){
