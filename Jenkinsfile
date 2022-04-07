@@ -8,7 +8,7 @@ pipeline {
     APP_NAME = 'graphhopper'
     NPM_TOKEN = credentials('npm-token')
     GITHUB_NPM_TOKEN = credentials('github-npm-token')
-    AWS_CRED = credentials('cf-stage')
+    AWS_CRED = credentials('cf-superuser')
     }
   stages {
     stage('Prepare Docker Image for Stage Environment') {
