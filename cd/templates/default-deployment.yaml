@@ -1,0 +1,305 @@
+{{- if eq .Values.deployScalingOnly.enabled "false"}}
+{{- if eq .Values.redirect "false" }}
+{{- if not .Values.cronjob }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "name" . }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    strategy.spinnaker.io/use-source-capacity: "true"
+  labels:
+    app: {{ template "name" . }}
+    app.kubernetes.io/name: {{ template "name" . }}
+    namespace: {{ .Release.Namespace }}
+    version: default
+    env: {{ default "stage" .Values.appEnv }}
+    chart: {{ .Chart.Name }}
+    tags.datadoghq.com/env: {{ default "stage" .Values.appEnv }}
+    tags.datadoghq.com/service: {{ template "name" . }}
+    tags.datadoghq.com/version: {{ .Values.deployment.container1.image.tag | quote}}
+    voyager/rightSize: {{ default "true" .Values.deployment.container1.voyager.rightSize | quote }}
+    {{- if eq .Values.deployment.container1.voyager.rightSize "true" }}
+    voyager/containersToRightSize: {{ default (printf "%s.%s" .Values.appName "fluentd-cloudwatch") .Values.deployment.container1.voyager.containersToRightSize | quote }}
+    {{- end }}
+{{- if .Values.deployment.labels }}
+{{ toYaml .Values.deployment.container1.labels | indent 4 }}
+{{- end }}
+spec:
+  revisionHistoryLimit: 10
+  strategy:
+    {{- if eq .Values.deployment.container1.strategy "Recreate" }}
+    type: Recreate
+    {{- else }}
+    rollingUpdate:
+      maxSurge: {{ default "50%" .Values.deployment.container1.maxSurge }}
+      maxUnavailable: {{ default "30%" .Values.deployment.container1.maxUnavailable }}
+    type: RollingUpdate
+    {{- end }}
+  replicas: {{ default "1" .Values.deployment.container1.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "name" . }}
+      namespace: {{ .Release.Namespace }}
+      version: default
+  template:
+    metadata:
+      labels:
+        app: {{ template "name" . }}
+        namespace: {{ .Release.Namespace }}
+        version: default
+        rollover: {{ default "false" .Values.deployment.container1.rollover | quote }}
+        tags.datadoghq.com/env: {{ default "stage" .Values.appEnv }}
+        tags.datadoghq.com/service: {{ template "name" . }}
+        tags.datadoghq.com/version: {{ .Values.deployment.container1.image.tag | quote}}
+      annotations:
+        sidecar.istio.io/statsInclusionPrefixes: http
+        traffic.sidecar.istio.io/includeOutboundIPRanges: {{ template "outboundIPInterception" . }}
+{{- if .Values.deployment.container1.podAnnotations }}
+{{ toYaml .Values.deployment.container1.podAnnotations | indent 8 }}
+{{- end }}
+    spec:
+  {{- if eq (default "false" .Values.deployment.container1.serviceAccount.enabled) "true" }}
+    {{- if .Values.deployment.container1.serviceAccount.name }}
+      serviceAccountName: {{ .Values.deployment.container1.serviceAccount.name }}
+    {{- else }}
+      serviceAccountName: {{ template "name" . }}-sa
+    {{- end }} 
+  {{- end }}
+      volumes:
+        - name: config
+          emptyDir: {}
+        - name: config-volume
+          configMap:
+            name: fluentd-config
+            defaultMode: 420
+        - name: applogs
+          emptyDir: {}
+        - name: log-config
+          configMap:
+            name: fluentd-config
+            defaultMode: 420
+        - name: service-account-credentials-volume
+          secret:
+            secretName: my-data-service-account-credentials
+            items:
+            - key: sa_json
+              path: sa_credentials.json    
+    {{- if .Values.secretFiles }}
+      {{- range $p := .Values.secretFiles }}
+        - name: {{ .name }}
+          secret:
+            secretName: {{ template "name" $ }}-{{ .name }}
+      {{- end }}
+    {{- end }}
+    {{- if eq .Values.deployment.container1.dnsPolicy "None"}}
+    {{- end }}
+      initContainers:
+      - name: copy-fluentd-config
+        image: gcr.io/curefoods-infra/busybox:latest
+        command:
+        - sh
+        - "-c"
+        - cp /config-volume/* /etc/fluentd
+        resources: {}
+        volumeMounts:
+        - name: config-volume
+          mountPath: "/config-volume"
+        - name: config
+          mountPath: "/etc/fluentd"
+        terminationMessagePath: "/dev/termination.log"
+        terminationMessagePolicy: File
+        imagePullPolicy: Always
+    {{- if .Values.deployment.initContainers }}
+      {{- range $p := .Values.deployment.initContainers }}
+      - name: {{ .name }}
+        image: "{{ $.Values.deployment.image.repository }}:{{ $.Values.deployment.image.tag }}"
+        command: {{ toJson (.command) }}
+        resources: {}
+        terminationMessagePath: "/dev/termination.log"
+        terminationMessagePolicy: File
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: {{ template "name" $ }}-env-config-map
+        {{- if $.Values.secrets }}
+        - secretRef:
+            name: {{ template "name" $ }}
+        {{- end }}
+        {{- if $.Values.externalSecrets }}
+        - secretRef:
+            name: {{ template "name" $ }}-external
+        {{- end }}
+      {{- end }}
+    {{- end }}
+      containers:
+      - name: fdlogger
+        image: "{{ .Values.deployment.container2.image.repository }}"
+        env:
+        - name: FLUENT_UID
+          value: root
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /etc/gcp/sa_credentials.json
+        volumeMounts:
+        - name: applogs
+          mountPath: /logs/graphhopper/
+        - name: log-config
+          mountPath: /etc/google-fluentd/google-fluentd.conf
+          subPath: google-fluentd.conf
+        - name: service-account-credentials-volume
+          mountPath: /etc/gcp
+          readOnly: true
+      - name: {{ template "name" . }}
+        image: "{{ .Values.deployment.container1.image.repository }}:{{ .Values.deployment.container1.image.tag }}"
+        lifecycle:                   
+          preStop:                   
+            exec:                    
+              command:               
+              - sh
+              - -c
+              - "{{ default "echo Done" .Values.deployment.container1.preStopCommand}} && sleep {{ default 80 .Values.deployment.container1.drainTime }}"
+        env:
+        - name: DD_AGENT_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: K8S_UUID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.uid
+        - name: DD_VERSION
+          value: {{ .Values.deployment.container1.image.tag | quote}}
+        envFrom:
+        - configMapRef:
+            name: {{ template "name" . }}-env-config-map
+        {{- if .Values.secrets }}
+        - secretRef:
+            name: {{ template "name" $ }}
+        {{- end }}
+        {{- if .Values.externalSecrets }}
+        - secretRef:
+            name: {{ template "name" $ }}-external
+        {{- end }}
+        imagePullPolicy: {{ .Values.deployment.container1.image.pullPolicy }}
+        terminationMessagePath: "/logs/{{ default .Values.appName .Values.deployment.logDir }}/termination.log"
+        terminationMessagePolicy: "FallbackToLogsOnError"
+        volumeMounts:
+        - name: applogs
+          mountPath: /logs/{{ default .Values.appName .Values.deployment.logDir }}
+        {{- if .Values.secretFiles }}
+        {{- range $p := .Values.secretFiles }}
+        - name: {{ .name }}
+          mountPath: {{ .path }}
+          readOnly: true
+        {{- end }}
+        {{- end }}
+        ports:
+        {{- range $p := .Values.service.expose }}
+        - containerPort: {{ . }}
+        {{- end }}
+        {{- if eq .Values.metrics.enabled true }}
+        {{- if ne .Values.metrics.port (index .Values.service.expose 0) }}
+        - containerPort: {{ .Values.metrics.port }}
+        {{- end }}
+        {{- end }}
+        {{- if eq .Values.deployment.container1.probe.type "tcp" }}
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.deployment.container1.probe.probePort }}
+          initialDelaySeconds: {{ default "30" .Values.deployment.container1.probe.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ default "20" .Values.deployment.probe.container1.livenessProbe.periodSeconds }}
+          successThreshold: {{ default "1" .Values.deployment.probe.container1.livenessProbe.successThreshold }}
+          timeoutSeconds: {{ default "1" .Values.deployment.container1.probe.livenessProbe.timeoutSeconds }}
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.deployment.container1.probe.probePort }}
+          initialDelaySeconds: {{ default "30" .Values.deployment.container1.probe.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ default "15" .Values.deployment.container1.probe.readinessProbe.periodSeconds }}
+          successThreshold: {{ default "1" .Values.deployment.container1.probe.livenessProbe.successThreshold }}
+          timeoutSeconds: {{ default "1" .Values.deployment.container1.probe.livenessProbe.timeoutSeconds }}
+        {{- else if eq .Values.deployment.container1.probe.type "exec" }}
+        livenessProbe:
+          exec:
+            command: {{ toJson (.Values.deployment.container1.probe.command) }}
+          initialDelaySeconds: {{ default "30" .Values.deployment.container1.probe.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ default "20" .Values.deployment.container1.probe.livenessProbe.periodSeconds }}
+          successThreshold: {{ default "1" .Values.deployment.container1.probe.livenessProbe.successThreshold }}
+          timeoutSeconds: {{ default "1" .Values.deployment.container1.probe.livenessProbe.timeoutSeconds }}
+        readinessProbe:
+          exec:
+            command: {{ toJson (.Values.deployment.container1.probe.command) }}
+          initialDelaySeconds: {{ default "30" .Values.deployment.container1.probe.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ default "15" .Values.deployment.container1.probe.readinessProbe.periodSeconds }}
+          successThreshold: {{ default "1" .Values.deployment.container1.probe.livenessProbe.successThreshold }}
+          timeoutSeconds: {{ default "1" .Values.deployment.container1.probe.livenessProbe.timeoutSeconds }}
+        {{- else if eq .Values.deployment.container1.probe.type "http" }}
+        livenessProbe:
+          httpGet:
+            path: {{ default "/status" .Values.deployment.container1.probePath }}
+            port: {{ .Values.deployment.container1.probePort }}
+          initialDelaySeconds: {{ default "30" .Values.deployment.container1.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ default "20" .Values.deployment.container1.livenessProbe.periodSeconds }}
+          successThreshold: {{ default "1" .Values.deployment.container1.livenessProbe.successThreshold }}
+          timeoutSeconds: {{ default "1" .Values.deployment.container1.livenessProbe.timeoutSeconds }}
+        readinessProbe:
+          httpGet:
+            path: {{ default "/status" .Values.deployment.container1.probePath }}
+            port: {{ .Values.deployment.container1.probePort }}
+          initialDelaySeconds: {{ default "30" .Values.deployment.container1.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ default "15" .Values.deployment.container1.readinessProbe.periodSeconds }}
+          successThreshold: {{ default "1"  .Values.deployment.container1.readinessProbe.successThreshold }}
+          timeoutSeconds: {{ default "1" .Values.deployment.container1.readinessProbe.timeoutSeconds }}
+        {{- end }}
+        resources:
+{{ toYaml .Values.deployment.container1.resources | indent 12 }}
+      terminationGracePeriodSeconds: {{ default "300" .Values.deployment.container1.terminationGracePeriodSeconds }}
+      affinity:
+        {{- if .Values.deployment.container1.nodeAffinity }}
+        nodeAffinity:
+        {{- "\n"}}{{ toYaml .Values.deployment.container1.nodeAffinity | indent 10}}
+        {{- end }}
+        {{- if .Values.deployment.container1.podAntiAffinity }}
+        podAntiAffinity:
+        {{- "\n"}}{{ toYaml .Values.deployment.container1.podAntiAffinity | indent 10}}
+        {{- end }}
+        podAntiAffinity: 
+          preferredDuringSchedulingIgnoredDuringExecution: 
+          - weight: 50
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - {{ template "name" . }}
+              topologyKey: "kubernetes.io/hostname"
+    {{- with .Values.deployment.container1.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+---
+{{- end }}
+{{- end }}
+{{- end }}
+---

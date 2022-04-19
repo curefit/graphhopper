@@ -1,0 +1,529 @@
+{{- if eq .Values.deployScalingOnly.enabled "false"}}
+{{- if not .Values.cronjob }}
+---
+{{- if .Values.istio.internal }}
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  {{- if eq .Values.redirect "true" }}
+  name: {{ template "name" . }}-internal-redirect
+  {{- else }}
+  name: {{ template "name" . }}-internal
+  {{- end }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    type: internal
+spec:
+  hosts:
+  - {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+  {{- range $p := .Values.istio.internal.hosts }}
+  - {{ $p }}
+  {{- if eq $.Values.migration "true" }}
+  - {{ template "migrationPrefix" $ }}{{ $p }}
+  {{- end }}
+  {{- end }}
+  gateways:
+  {{- if eq $.Values.disable_mesh_gateway "false" }}
+  - mesh
+  {{- end }}
+  {{- if eq .Values.redirect "true" }}
+  - {{ template "internalGateway" . }}-internal-redirect.asm-ingress.svc.cluster.local
+  {{- else }}
+  - {{ template "internalGateway" . }}-internal.asm-ingress.svc.cluster.local
+  {{- end }}
+  http:
+  {{- if .Values.istio.internal.matchAdditional }}
+  {{- range $p := .Values.istio.internal.matchAdditional }}
+  - match:
+    {{- range $p :=  .match }}
+    - uri:
+        {{- range $k, $v := . }}
+        {{ $k }}: {{ $v }}
+        {{- end }}
+    {{- end }}
+    {{- if .rewrite }}
+    rewrite:
+      uri: {{ .rewrite }}
+    {{- end }}
+    timeout: {{ default $.Values.istio.default.timeout $.Values.istio.internal.timeout }}
+    {{- if .retries }}
+    retries:
+      attempts: {{ default $.Values.istio.default.retries.attempts .retries.attempts }}
+      perTryTimeout: {{ default $.Values.istio.default.retries.perTryTimeout .retries.perTryTimeout }}
+      retryOn: {{ default $.Values.istio.default.retries.retryOn .retries.retryOn }}
+     {{- end }}
+    route:
+    - destination:
+    {{- if .route }}
+    {{- if .namespace }}
+        host: {{ .route }}-internal.{{ .namespace }}.svc.cluster.local
+    {{- else }}
+        host: {{ .route }}-internal.{{ .route }}.svc.cluster.local
+    {{- end }}
+    {{- else }}
+        host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+    {{- end }}
+        port:
+          number: 80
+        subset: default
+      weight: 100
+  {{- end }}
+  {{- else }}
+  - match:
+    {{- range $p := default .Values.istio.default.match .Values.istio.internal.match }}
+    - uri:
+        {{- range $k, $v := . }}
+        {{ $k }}: {{ $v }}
+        {{- end }}
+    {{- end }}
+    {{- if $.Values.istio.internal.rewrite }}
+    rewrite:
+      uri: {{ $.Values.istio.internal.rewrite }}
+    {{- end }}
+    timeout: {{ default .Values.istio.default.timeout .Values.istio.internal.timeout }}
+    {{- if $.Values.istio.internal.retries}}
+    retries:
+      attempts: {{ default .Values.istio.default.retries.attempts .Values.istio.internal.retries.attempts }}
+      perTryTimeout: {{ default .Values.istio.default.retries.perTryTimeout .Values.istio.internal.retries.perTryTimeout }}
+      retryOn: {{ default .Values.istio.default.retries.retryOn .Values.istio.internal.retries.retryOn }}
+    {{- end }}
+    route:
+    - destination:
+        host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+        port:
+          number: 80
+        subset: default
+      weight: {{ default 100 $.Values.canary.weight.default }}
+      {{- if $.Values.canary.enableSubsets }}
+    - destination:
+        host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+        subset: baseline
+      weight: {{ default 0 $.Values.canary.weight.baseline }}
+    - destination:
+        host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+        subset: canary
+      weight: {{ default 0 $.Values.canary.weight.canary }}
+    {{- end }}
+{{- end }}
+{{- end }}
+---
+
+{{- if .Values.istio.external }}
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  {{- if eq .Values.redirect "true" }}
+  name: {{ template "name" . }}-external-redirect
+  {{- else }}
+  name: {{ template "name" . }}-external
+  {{- end }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    type: external
+spec:
+  hosts:
+  {{- range $p := .Values.istio.external.hosts }}
+  - {{ $p }}
+  {{- if eq $.Values.migration "true" }}
+  - {{ template "migrationPrefix" $ }}{{ $p }}
+  {{- end }}
+  {{- end }}
+  gateways:
+  {{- if eq .Values.redirect "true" }}
+  - {{ template "externalGateway" . }}-external-redirect.asm-ingress.svc.cluster.local
+  {{- else }}
+  - {{ template "externalGateway" . }}-external.asm-ingress.svc.cluster.local
+  {{- end }}
+  http:
+  {{- if .Values.istio.external.matchAdditional }}
+  {{- range $p := .Values.istio.external.matchAdditional }}
+  - match:
+    {{- range $p :=  .match }}
+    - uri:
+        {{- range $k, $v := . }}
+        {{ $k }}: {{ $v }}
+        {{- end }}
+    {{- end }}
+    {{- if .rewrite }}
+    rewrite:
+      uri: {{ .rewrite }}
+    {{- end }}
+    {{- if .redirect }}
+    redirect:
+      authority: {{ .redirect.domain }}
+    {{- if .redirect.uri }}
+      uri: {{ .redirect.uri }}
+    {{- end }}
+    {{- end }}
+    timeout: {{ default $.Values.istio.default.timeout $.Values.istio.external.timeout }}
+    {{- if .retries }}
+    retries:
+      attempts: {{ default $.Values.istio.default.retries.attempts .retries.attempts }}
+      perTryTimeout: {{ default $.Values.istio.default.retries.perTryTimeout .retries.perTryTimeout }}
+      retryOn: {{ default $.Values.istio.default.retries.retryOn .retries.retryOn }}
+     {{- end }}
+    {{- if .rewrite }} 
+    route:
+    - destination:
+    {{- if .route }}
+    {{- if .namespace }}
+        host: {{ .route }}-internal.{{ .namespace }}.svc.cluster.local
+    {{- else }}
+        host: {{ .route }}-internal.{{ .route }}.svc.cluster.local
+    {{- end }}
+    {{- else }}
+        host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+    {{- end }}
+        port:
+          number: 80
+        subset: default
+      weight: 100
+  {{- end }}    
+  {{- end }}
+  {{- else }}
+  - match:
+    {{- range $p := default .Values.istio.default.match .Values.istio.external.match }}
+    - uri:
+        {{- range $k, $v := . }}
+        {{ $k }}: {{ $v }}
+        {{- end }}
+    {{- end }}
+    {{- if $.Values.istio.external.rewrite }}
+    rewrite:
+      uri: {{ $.Values.istio.external.rewrite }}
+    {{- end }}
+    timeout: {{ default .Values.istio.default.timeout .Values.istio.external.timeout }}
+    {{- if $.Values.istio.external.retries }}
+    retries:
+      attempts: {{ default .Values.istio.default.retries.attempts .Values.istio.external.retries.attempts }}
+      perTryTimeout: {{ default .Values.istio.default.retries.perTryTimeout .Values.istio.external.retries.perTryTimeout }}
+      retryOn: {{ default .Values.istio.default.retries.retryOn .Values.istio.external.retries.retryOn }}
+     {{- end }}
+    route:
+    - destination:
+        host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+        port:
+          number: 80
+        subset: default
+      weight: {{ default 100 $.Values.canary.weight.default }}
+      {{- if $.Values.canary.enableSubsets }}
+    - destination:
+        host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+        subset: baseline
+      weight: {{ default 0 $.Values.canary.weight.baseline }}
+    - destination:
+        host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+        subset: canary
+      weight: {{ default 0 $.Values.canary.weight.canary }}
+        {{- end }}
+{{- end }}
+{{- end }}
+---
+
+{{- if .Values.istio.vpn }}
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  {{- if eq .Values.redirect "true" }}
+  name: {{ template "name" . }}-vpn-redirect
+  {{- else }}
+  name: {{ template "name" . }}-vpn
+  {{- end }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    type: vpn
+spec:
+  hosts:
+  {{- range $p := .Values.istio.vpn.hosts }}
+  - {{ $p }}
+  {{- if eq $.Values.migration "true" }}
+  - {{ template "migrationPrefix" $ }}{{ $p }}
+  {{- end }}
+  {{- end }}
+  gateways:
+  {{- if eq .Values.redirect "true" }}
+  - {{ template "vpnGateway" . }}-vpn-redirect.istio-ingressgateway-vpn.svc.cluster.local
+  {{- else }}
+  - {{ template "vpnGateway" . }}-vpn.istio-ingressgateway-vpn.svc.cluster.local
+  {{- end }}
+  http:
+  - match:
+    {{- range $p := default .Values.istio.default.match .Values.istio.vpn.match }}
+    - uri:
+        {{- range $k, $v := . }}
+        {{ $k }}: {{ $v }}
+        {{- end }}
+    {{- end }}
+    {{- if $.Values.istio.vpn.rewrite }}
+    rewrite:
+      uri: {{ $.Values.istio.vpn.rewrite }}
+    {{- end }}
+    {{- if .redirect }}
+    redirect:
+      authority: {{ .redirect.domain }}
+    {{- if .redirect.uri }}
+      uri: {{ .redirect.uri }}
+    {{- end }}
+    {{- end }}
+    timeout: {{ default .Values.istio.default.timeout .Values.istio.vpn.timeout }}
+    {{- if $.Values.istio.vpn.retries }}
+    retries:
+      attempts: {{ default .Values.istio.default.retries.attempts .Values.istio.vpn.retries.attempts }}
+      perTryTimeout: {{ default .Values.istio.default.retries.perTryTimeout .Values.istio.vpn.retries.perTryTimeout }}
+      retryOn: {{ default .Values.istio.default.retries.retryOn .Values.istio.vpn.retries.retryOn }}
+    {{- end }}
+    route:
+    - destination:
+        host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+        port:
+          number: 80
+        subset: default
+      weight: {{ default 100 $.Values.canary.weight.default }}
+      {{- if $.Values.canary.enableSubsets }}
+    - destination:
+        host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+        subset: baseline
+      weight: {{ default 0 $.Values.canary.weight.baseline }}
+    - destination:
+        host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+        subset: canary
+      weight: {{ default 0 $.Values.canary.weight.canary }}
+    {{- end }}
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  {{- if eq .Values.redirect "true" }}
+  name: {{ template "name" . }}-alb-vpn-redirect
+  {{- else }}
+  name: {{ template "name" . }}-alb-vpn
+  {{- end }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    type: alb-vpn
+spec:
+  hosts:
+  {{- range $p := .Values.istio.vpn.hosts }}
+  - {{ $p }}
+  {{- if eq $.Values.migration "true" }}
+  - {{ template "migrationPrefix" $ }}{{ $p }}
+  {{- end }}
+  {{- end }}
+  gateways:
+  {{- if eq .Values.redirect "true" }}
+  - {{ template "vpnGateway" . }}-alb-vpn-redirect.istio-ingressgateway-alb-vpn.svc.cluster.local
+  {{- else }}
+  - {{ template "vpnGateway" . }}-alb-vpn.istio-ingressgateway-alb-vpn.svc.cluster.local
+  {{- end }}
+  http:
+  - match:
+    {{- range $p := default .Values.istio.default.match .Values.istio.vpn.match }}
+    - uri:
+        {{- range $k, $v := . }}
+        {{ $k }}: {{ $v }}
+        {{- end }}
+    {{- end }}
+    {{- if $.Values.istio.vpn.rewrite }}
+    rewrite:
+      uri: {{ $.Values.istio.vpn.rewrite }}
+    {{- end }}
+    timeout: {{ default .Values.istio.default.timeout .Values.istio.vpn.timeout }}
+    {{- if $.Values.istio.vpn.retries }}
+    retries:
+      attempts: {{ default .Values.istio.default.retries.attempts .Values.istio.vpn.retries.attempts }}
+      perTryTimeout: {{ default .Values.istio.default.retries.perTryTimeout .Values.istio.vpn.retries.perTryTimeout }}
+      retryOn: {{ default .Values.istio.default.retries.retryOn .Values.istio.vpn.retries.retryOn }}
+    {{- end }}
+    route:
+    - destination:
+        host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+        port:
+          number: 80
+        subset: default
+      weight: {{ default 100 $.Values.canary.weight.default }}
+      {{- if $.Values.canary.enableSubsets }}
+    - destination:
+        host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+        subset: baseline
+      weight: {{ default 0 $.Values.canary.weight.baseline }}
+    - destination:
+        host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+        subset: canary
+      weight: {{ default 0 $.Values.canary.weight.canary }}
+    {{- end }}
+{{- end }}
+---
+
+{{- if .Values.istio.custom }}
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ template "name" . }}-custom
+  namespace: {{ .Release.Namespace }}
+  labels:
+    type: {{ .Values.istio.custom.type }}
+spec:
+  hosts:
+  {{- range $p := .Values.istio.custom.hosts }}
+  - {{ $p }}
+  {{- if eq $.Values.migration "true" }}
+  - {{ template "migrationPrefix" $ }}{{ $p }}
+  {{- end }}
+  {{- end }}
+  gateways:
+  - {{ template "customGateway" . }}-custom.istio-ingressgateway-{{ .Values.istio.custom.type }}.svc.cluster.local
+  http:
+  - match:
+    {{- range $p := default .Values.istio.default.match .Values.istio.custom.match }}
+    - uri:
+        {{- range $k, $v := . }}
+        {{ $k }}: {{ $v }}
+        {{- end }}
+    {{- end }}
+    {{- if $.Values.istio.custom.rewrite }}
+    rewrite:
+      uri: {{ $.Values.istio.custom.rewrite }}
+    {{- end }}
+    timeout: {{ default .Values.istio.default.timeout .Values.istio.custom.timeout }}
+    {{- if $.Values.istio.custom.retries }}
+    retries:
+      attempts: {{ default .Values.istio.default.retries.attempts .Values.istio.custom.retries.attempts }}
+      perTryTimeout: {{ default .Values.istio.default.retries.perTryTimeout .Values.istio.custom.retries.perTryTimeout }}
+      retryOn: {{ default .Values.istio.default.retries.retryOn .Values.istio.custom.retries.retryOn }}
+    {{- end }}
+    route:
+    - destination:
+        host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+        port:
+          number: 80
+        subset: default
+      weight: {{ default 100 $.Values.canary.weight.default }}
+      {{- if $.Values.canary.enableSubsets }}
+    - destination:
+        host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+        subset: baseline
+      weight: {{ default 0 $.Values.canary.weight.baseline }}
+    - destination:
+        host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+        subset: canary
+      weight: {{ default 0 $.Values.canary.weight.canary }}
+    {{- end }}
+{{- end }}
+---
+
+{{- if .Values.istio.alb }}
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  {{- if eq .Values.redirect "true" }}
+  name: {{ template "name" . }}-alb-redirect
+  {{- else }}
+  name: {{ template "name" . }}-alb
+  {{- end }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    type: {{ template "name" . }}
+spec:
+  hosts:
+  {{- range $p := .Values.istio.alb.hosts }}
+  - {{ $p }}
+  {{- if eq $.Values.migration "true" }}
+  - {{ template "migrationPrefix" $ }}{{ $p }}
+  {{- end }}
+  {{- end }}
+  gateways:
+  {{- if eq .Values.redirect "true" }}
+  - {{ template "albGateway" . }}-alb-redirect.istio-ingressgateway-alb.svc.cluster.local
+  {{- else }}
+  - {{ template "albGateway" . }}-alb.istio-ingressgateway-alb.svc.cluster.local
+  {{- end }}
+  http:
+  {{- if .Values.istio.alb.matchAdditional }}
+  {{- range $p := .Values.istio.alb.matchAdditional }}
+  - match:
+    {{- range $p :=  .match }}
+    - uri:
+        {{- range $k, $v := . }}
+        {{ $k }}: {{ $v }}
+        {{- end }}
+    {{- end }}
+    {{- if .rewrite }}
+    rewrite:
+      uri: {{ .rewrite }}
+    {{- end }}
+    {{- if .redirect }}
+    redirect:
+      authority: {{ .redirect.domain }}
+      uri: {{ .redirect.uri }}
+    {{- end }}
+    timeout: {{ default $.Values.istio.default.timeout $.Values.istio.alb.timeout }}
+    {{- if .retries }}
+    retries:
+      attempts: {{ default $.Values.istio.default.retries.attempts .retries.attempts }}
+      perTryTimeout: {{ default $.Values.istio.default.retries.perTryTimeout .retries.perTryTimeout }}
+      retryOn: {{ default $.Values.istio.default.retries.retryOn .retries.retryOn }}
+     {{- end }}
+    {{- if .rewrite }} 
+    route:
+    - destination:
+    {{- if .route }}
+    {{- if .namespace }}
+        host: {{ .route }}-internal.{{ .namespace }}.svc.cluster.local
+    {{- else }}
+        host: {{ .route }}-internal.{{ .route }}.svc.cluster.local
+    {{- end }}
+    {{- else }}
+        host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+    {{- end }}
+        port:
+          number: 80
+        subset: default
+      weight: 100
+  {{- end }}    
+  {{- end }}
+  {{- else }}
+  - match:
+    {{- range $p := default .Values.istio.default.match .Values.istio.alb.match }}
+    - uri:
+        {{- range $k, $v := . }}
+        {{ $k }}: {{ $v }}
+        {{- end }}
+    {{- end }}
+    {{- if $.Values.istio.alb.rewrite }}
+    rewrite:
+      uri: {{ $.Values.istio.alb.rewrite }}
+    {{- end }}
+    timeout: {{ default .Values.istio.default.timeout .Values.istio.alb.timeout }}
+    {{- if $.Values.istio.alb.retries }}
+    retries:
+      attempts: {{ default .Values.istio.default.retries.attempts .Values.istio.alb.retries.attempts }}
+      perTryTimeout: {{ default .Values.istio.default.retries.perTryTimeout .Values.istio.alb.retries.perTryTimeout }}
+      retryOn: {{ default .Values.istio.default.retries.retryOn .Values.istio.alb.retries.retryOn }}
+     {{- end }}
+    route:
+    - destination:
+        host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+        port:
+          number: 80
+        subset: default
+      weight: {{ default 100 $.Values.canary.weight.default }}
+      {{- if $.Values.canary.enableSubsets }}
+    - destination:
+        host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+        subset: baseline
+      weight: {{ default 0 $.Values.canary.weight.baseline }}
+    - destination:
+        host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+        subset: canary
+      weight: {{ default 0 $.Values.canary.weight.canary }}
+      {{- end }}
+{{- end }}
+{{- end }}
+---
+{{- end }}
+{{- end }}

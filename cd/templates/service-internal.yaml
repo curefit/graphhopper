@@ -1,0 +1,46 @@
+{{- if eq .Values.deployScalingOnly.enabled "false"}}
+{{- if eq .Values.redirect "false" }}
+{{- if not .Values.cronjob }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "serviceName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- if eq .Values.metrics.enabled true }}
+    service-type: metrics
+  {{- end }}
+    app: {{ template "name" . }}
+    app.kubernetes.io/name: {{ template "name" . }}
+    namespace: {{ .Release.Namespace }}
+  annotations:
+{{ toYaml .annotations | indent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - port: 80
+    targetPort: {{ index .Values.service.expose 0 }}
+    protocol: TCP
+    name: http-80-{{ index .Values.service.expose 0 }}
+{{- range $p := .Values.service.expose }}
+  - port: {{ . }}
+    targetPort: {{ . }}
+    protocol: TCP
+    name: http-{{ . }}
+{{- end }}
+{{- if eq .Values.metrics.enabled true }}
+{{- if ne .Values.metrics.port (index .Values.service.expose 0) }}
+  - port: {{ .Values.metrics.port }}
+    targetPort: {{ .Values.metrics.port }}
+    protocol: TCP
+    name: http-{{ .Values.metrics.port }}
+{{- end }}
+{{- end }}
+  selector:
+    namespace: {{ .Release.Namespace }}
+    app: {{ template "name" . }}
+---
+{{- end }}
+{{- end }}
+{{- end }}

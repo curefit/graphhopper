@@ -1,0 +1,135 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: fluentd-config
+  namespace: graphhopper
+data:
+  google-fluentd.conf: |
+    <source>
+      @type tail
+      @label @DEBUG
+      path /logs/*/debug*.log
+      pos_file /run/google-fluentd/app-debug-logs.pos
+      tag graphhopper
+      read_from_head true
+      format none
+    </source>
+    <source>
+      @type tail
+      @label @ERROR
+      path /logs/*/error*.log
+      pos_file /run/google-fluentd/app-error-logs.pos
+      tag graphhopper
+      read_from_head true
+      format none
+    </source>
+    <source>
+      @type tail
+      @label @INFO
+      path /logs/*/info*.log
+      pos_file /run/google-fluentd/app-info-logs.pos
+      tag graphhopper
+      read_from_head true
+      format none
+    </source>
+    <source>
+      @type tail
+      @label @WARNING
+      path /logs/*/warn*.log
+      pos_file /run/google-fluentd/app-warn-logs.pos
+      tag graphhopper
+      read_from_head true
+      format none
+    </source>
+    <label @ERROR>
+      <filter ** >
+        @type record_transformer
+        enable_ruby true
+        <record>
+          severity "ERROR"
+        </record>
+      </filter>
+      <match ** >
+        @type google_cloud
+        buffer_type file
+        buffer_path /var/log/google-fluentd/buffers/ERROR
+        buffer_chunk_limit 512KB
+        flush_interval 5s
+        disable_retry_limit false
+        retry_limit 3
+        retry_wait 10
+        max_retry_wait 300
+        num_threads 8
+        detect_json true
+        use_grpc true
+      </match>
+    </label>
+    <label @DEBUG>
+      <filter ** >
+        @type record_transformer
+        enable_ruby true
+        <record>
+          severity "DEBUG"
+        </record>
+      </filter>
+      <match ** >
+        @type google_cloud
+        buffer_type file
+        buffer_path /var/log/google-fluentd/buffers/DEBUG
+        buffer_chunk_limit 512KB
+        flush_interval 5s
+        disable_retry_limit false
+        retry_limit 3
+        retry_wait 10
+        max_retry_wait 300
+        num_threads 8
+        detect_json true
+        use_grpc true
+      </match>
+    </label>
+    <label @INFO>  
+      <filter ** >
+        @type record_transformer
+        enable_ruby true
+        <record>
+          severity "INFO"
+        </record>
+      </filter>
+      <match ** >
+        @type google_cloud
+        buffer_type file
+        buffer_path /var/log/google-fluentd/buffers/INFO
+        buffer_chunk_limit 512KB
+        flush_interval 5s
+        disable_retry_limit false
+        retry_limit 3
+        retry_wait 10
+        max_retry_wait 300
+        num_threads 8
+        detect_json true
+        use_grpc true
+      </match>
+    </label>  
+    <label @WARNING>
+      <filter ** >
+        @type record_transformer
+        enable_ruby true
+        <record>
+          severity "WARNING"
+        </record>
+      </filter>
+      <match ** >
+        @type google_cloud
+        buffer_type file
+        buffer_path /var/log/google-fluentd/buffers/WARNING
+        buffer_chunk_limit 512KB
+        flush_interval 5s
+        disable_retry_limit false
+        retry_limit 3
+        retry_wait 10
+        max_retry_wait 300
+        num_threads 8
+        detect_json true
+        use_grpc true
+      </match>
+    </label>

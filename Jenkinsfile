@@ -22,6 +22,7 @@ pipeline {
             buildDockerfile("${APP_NAME}", URL, "stage")
             pushDockerImage(URL)
             updateArtifact("${DOCKER_REGISTRY}/${ORG}/${APP_NAME}", "${VERSION}", "stage")
+            deploy("${APP_NAME}", "${VERSION}")
             }
           }
       };
@@ -77,4 +78,16 @@ void updateArtifact(repo, tag, env) {
     echo env=${env} >> build.properties
     """
     archiveArtifacts 'build.properties'
+}
+
+void deploy(APP_NAME,tag) {
+    sh """
+    helm version
+    echo APP_NAME="${APP_NAME}"
+    find . -maxdepth 1 ! -name 'cd' ! -name '.' -exec rm -rf {} +
+    cd cd
+    sed -i "s/<TAG_NAME>/${tag}/g" values.yaml
+    cat values.yaml
+    helm upgrade "${APP_NAME}" -n "${APP_NAME}" .
+    """
 }

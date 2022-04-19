@@ -1,0 +1,10 @@
+#app-name
+
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+> If the application exposes an external URL, then it will he accessible at : https://app-name.curefit.co (https://app-name.beta.curefit.co for a pre-release)
+
+> If the application exposes an internal URL, then it will he accessible at : http://app-name-internal.curefit.co (http://app-name-internal.pre.curefit.co for a pre-release)
+

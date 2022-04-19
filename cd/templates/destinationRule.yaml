@@ -1,0 +1,48 @@
+{{- if eq .Values.deployScalingOnly.enabled "false"}}
+{{- if eq .Values.redirect "false" }}
+{{- if not .Values.cronjob }}
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: {{ template "name" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  host: {{ template "serviceName" $ }}.{{ $.Release.Namespace }}.svc.cluster.local
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    tls:
+      mode: {{ template "tlsMode" . }}
+{{- if .Values.istio.outlierDetection.enabled }}
+    outlierDetection:
+      baseEjectionTime: {{ .Values.istio.outlierDetection.baseEjectionTime }}
+      consecutiveErrors: {{ .Values.istio.outlierDetection.consecutiveErrors }}
+      interval: {{ .Values.istio.outlierDetection.interval }}
+      maxEjectionPercent: {{ .Values.istio.outlierDetection.maxEjectionPercent }}
+{{- end }}
+{{- if eq .Values.istio.mcb.enabled true }}
+{{ toYaml .Values.istio.mcb.config | indent 4 }}
+{{- end }}
+  subsets:
+  - name: default
+    labels:
+      app: {{ template "name" . }}
+      namespace: {{ .Release.Namespace }}
+      version: default
+    {{- if eq (default "no" .Values.canary.enabled) "yes" }}
+  - name: baseline
+    labels:
+      app: {{ template "name" . }}
+      namespace: {{ .Release.Namespace }}
+      version: baseline
+  - name: canary
+    labels:
+      app: {{ template "name" . }}
+      namespace: {{ .Release.Namespace }}
+      version: canary
+      {{- end }}
+---
+{{- end }}
+{{- end }}
+{{- end }}

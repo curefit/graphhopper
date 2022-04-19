@@ -1,0 +1,275 @@
+{{- if eq .Values.deployScalingOnly.enabled "false"}}
+{{- if .Values.istio.internal }}
+{{- if not .Values.istio.internal.gateway }}
+---
+kind: Gateway
+apiVersion: networking.istio.io/v1beta1
+metadata:
+  {{- if eq .Values.redirect "true" }}
+  name: {{ template "name" . }}-internal-redirect
+  {{- else }}
+  name: {{ template "name" . }}-internal
+  {{- end }}
+  namespace: asm-ingress
+spec:
+  servers:
+    - hosts:
+      {{- range $p := .Values.istio.internal.hosts }}
+      - {{ $p }}
+      {{- if eq $.Values.migration "true" }}
+      - {{ template "migrationPrefix" $ }}{{ $p }}
+      {{- end }}
+      {{- end }}
+      port:
+        name: http-{{ template "name" . }}-internal
+        number: 80
+        protocol: HTTP
+  selector:
+    asm: ingressgateway
+---
+{{- end }}
+{{- end }}
+
+{{- if .Values.istio.external }}
+{{- if not .Values.istio.external.gateway }}
+---
+kind: Gateway
+apiVersion: networking.istio.io/v1beta1
+metadata:
+  {{- if eq .Values.redirect "true" }}
+  name: {{ template "name" . }}-external-redirect
+  {{- else }}
+  name: {{ template "name" . }}-external
+  {{- end }}
+  namespace: asm-ingress
+spec:
+  servers:
+    - hosts:
+      {{- range $p := .Values.istio.external.hosts }}
+      - {{ $p }}
+      {{- if eq $.Values.migration "true" }}
+      - {{ template "migrationPrefix" $ }}{{ $p }}
+      {{- end }}
+      {{- end }}
+      port:
+        name: http-{{ template "name" . }}-external
+        number: 80
+        protocol: HTTP
+      tls:
+        httpsRedirect: true
+    - hosts:
+      {{- range $p := .Values.istio.external.hosts }}
+      - {{ $p }}
+      {{- if eq $.Values.migration "true" }}
+      - {{ template "migrationPrefix" $ }}{{ $p }}
+      {{- end }}
+      {{- end }}
+      port:
+        name: https-{{ template "name" . }}-external
+        number: 443
+        protocol: HTTP
+      tls:
+        mode: PASSTHROUGH
+  selector:
+    asm: ingressgateway 
+---
+{{- end }}
+{{- end }}
+
+{{- if .Values.istio.additionalRedirectDomains }}
+{{- if not .Values.istio.external.gateway }}
+---
+kind: Gateway
+apiVersion: networking.istio.io/v1beta1
+metadata:
+  name: {{ template "name" . }}-redirect-external
+  namespace: istio-ingressgateway-external
+spec:
+  servers:
+    - hosts:
+      {{- range $p := .Values.istio.additionalRedirectDomains.hosts }}
+      - {{ $p }}
+      {{- if eq $.Values.migration "true" }}
+      - {{ template "migrationPrefix" $ }}{{ $p }}
+      {{- end }}
+      {{- end }}
+      port:
+        name: http-{{ template "name" . }}-external
+        number: 80
+        protocol: HTTP
+      tls:
+        httpsRedirect: true
+    - hosts:
+      {{- range $p := .Values.istio.additionalRedirectDomains.hosts }}
+      - {{ $p }}
+      {{- if eq $.Values.migration "true" }}
+      - {{ template "migrationPrefix" $ }}{{ $p }}
+      {{- end }}
+      {{- end }}
+      port:
+        name: https-{{ template "name" . }}-external
+        number: 443
+        protocol: HTTP
+      tls:
+        mode: PASSTHROUGH
+  selector:
+    istio: external
+---
+{{- end }}
+{{- end }}
+
+{{- if .Values.istio.vpn }}
+{{- if not .Values.istio.vpn.gateway }}
+---
+kind: Gateway
+apiVersion: networking.istio.io/v1beta1
+metadata:
+  {{- if eq .Values.redirect "true" }}
+  name: {{ template "name" . }}-vpn-redirect
+  {{- else }}
+  name: {{ template "name" . }}-vpn
+  {{- end }}
+  namespace: istio-ingressgateway-vpn
+spec:
+  servers:
+    - hosts:
+      {{- range $p := .Values.istio.vpn.hosts }}
+      - {{ $p }}
+      {{- if eq $.Values.migration "true" }}
+      - {{ template "migrationPrefix" $ }}{{ $p }}
+      {{- end }}
+      {{- end }}
+      port:
+        name: http-{{ template "name" . }}-vpn
+        number: 80
+        protocol: HTTP
+      tls:
+        httpsRedirect: true
+    - hosts:
+      {{- range $p := .Values.istio.vpn.hosts }}
+      - {{ $p }}
+      {{- if eq $.Values.migration "true" }}
+      - {{ template "migrationPrefix" $ }}{{ $p }}
+      {{- end }}
+      {{- end }}
+      port:
+        name: https-{{ template "name" . }}-vpn
+        number: 443
+        protocol: HTTP
+      tls:
+        mode: PASSTHROUGH
+  selector:
+    istio: vpn
+---
+kind: Gateway
+apiVersion: networking.istio.io/v1beta1
+metadata:
+  {{- if eq .Values.redirect "true" }}
+  name: {{ template "name" . }}-alb-vpn-redirect
+  {{- else }}
+  name: {{ template "name" . }}-alb-vpn
+  {{- end }}
+  namespace: istio-ingressgateway-alb-vpn
+spec:
+  servers:
+    - hosts:
+      {{- range $p := .Values.istio.vpn.hosts }}
+      - {{ $p }}
+      {{- if eq $.Values.migration "true" }}
+      - {{ template "migrationPrefix" $ }}{{ $p }}
+      {{- end }}
+      {{- end }}
+      port:
+        name: http-{{ template "name" . }}-alb-vpn
+        number: 80
+        protocol: HTTP
+  selector:
+    istio: alb-vpn
+---
+{{- end }}
+{{- end }}
+
+{{- if .Values.istio.custom }}
+{{- if not .Values.istio.custom.gateway }}
+
+---
+kind: Gateway
+apiVersion: networking.istio.io/v1beta1
+metadata:
+  name: {{ template "name" . }}-custom
+  {{- if eq .Values.istio.custom.type "external" }}
+  namespace: istio-ingressgateway-external
+  {{- else if eq .Values.istio.custom.type "internal" }}
+  namespace: istio-ingressgateway-internal
+  {{- else if eq .Values.istio.custom.type "vpn" }}
+  namespace: istio-ingressgateway-vpn
+  {{- end }}
+spec:
+  servers:
+    - hosts:
+      {{- range $p := .Values.istio.custom.hosts }}
+      - {{ $p }}
+      {{- if eq $.Values.migration "true" }}
+      - {{ template "migrationPrefix" $ }}{{ $p }}
+      {{- end }}
+      {{- end }}
+      port:
+        name: http-{{ template "name" . }}-custom
+        number: 80
+        protocol: HTTP
+      {{- if ne .Values.istio.custom.type "internal" }}
+      tls:
+        httpsRedirect: true
+      {{- end }}
+    - hosts:
+      {{- range $p := .Values.istio.custom.hosts }}
+      - {{ $p }}
+      {{- if eq $.Values.migration "true" }}
+      - {{ template "migrationPrefix" $ }}{{ $p }}
+      {{- end }}
+      {{- end }}
+      port:
+        name: https-{{ template "name" . }}-custom
+        number: 443
+        protocol: HTTP
+      tls:
+        mode: PASSTHROUGH
+  selector:
+    istio: {{ .Values.istio.custom.type }}
+---
+{{- end }}
+{{- end }}
+
+
+{{- if .Values.istio.alb }}
+{{- if not .Values.istio.alb.gateway }}
+
+---
+kind: Gateway
+apiVersion: networking.istio.io/v1beta1
+metadata:
+  {{- if eq .Values.redirect "true" }}
+  name: {{ template "name" . }}-alb-redirect
+  {{- else }}
+  name: {{ template "name" . }}-alb
+  {{- end }}
+  namespace: istio-ingressgateway-alb
+spec:
+  servers:
+    - hosts:
+      {{- range $p := .Values.istio.alb.hosts }}
+      - {{ $p }}
+      {{- if eq $.Values.migration "true" }}
+      - {{ template "migrationPrefix" $ }}{{ $p }}
+      {{- end }}
+      {{- end }}
+      port:
+        name: http-{{ template "name" . }}-alb
+        number: 80
+        protocol: HTTP
+  selector:
+    istio: alb
+---
+{{- end }}
+{{- end }}
+{{- end }}

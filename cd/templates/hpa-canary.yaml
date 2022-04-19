@@ -1,0 +1,55 @@
+{{- if eq .Values.deployScalingOnly.enabled "false"}}
+{{- if eq (default "no" .Values.canary.enabled) "yes" }}
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  annotations:
+    artifact.spinnaker.io/location: {{ .Release.Namespace }}
+    artifact.spinnaker.io/name: {{ template "canaryName" . }}
+    artifact.spinnaker.io/type: kubernetes/horizontalpodautoscaler
+    moniker.spinnaker.io/application: {{ template "canaryName" . }}
+    moniker.spinnaker.io/cluster: horizontalpodautoscaler {{ template "canaryName" . }}
+  labels:
+    app: {{ template "canaryName" . }}
+    app.kubernetes.io/managed-by: spinnaker
+    app.kubernetes.io/name: {{ template "canaryName" . }}
+    version: canary
+  name: {{ template "canaryName" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  maxReplicas: 20
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ template "canaryName" . }}
+  targetCPUUtilizationPercentage: 200
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  annotations:
+    artifact.spinnaker.io/location: {{ template "baselineName" . }}
+    artifact.spinnaker.io/name: {{ template "baselineName" . }}
+    artifact.spinnaker.io/type: kubernetes/horizontalpodautoscaler
+    moniker.spinnaker.io/application: {{ template "baselineName" . }}
+    moniker.spinnaker.io/cluster: horizontalpodautoscaler {{ template "baselineName" . }}
+  labels:
+    app: {{ template "baselineName" . }}
+    app.kubernetes.io/managed-by: spinnaker
+    app.kubernetes.io/name: {{ template "baselineName" . }}
+    version: baseline
+  name: {{ template "baselineName" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  maxReplicas: 20
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ template "baselineName" . }}
+  targetCPUUtilizationPercentage: 200
+---
+{{- end }}
+{{- end }}

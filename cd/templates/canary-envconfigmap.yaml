@@ -1,0 +1,35 @@
+{{- if eq .Values.deployScalingOnly.enabled "false"}}
+{{- if eq .Values.redirect "false" }}
+{{- if not .Values.cronjob }}
+{{- if eq (default "no" .Values.canary.enabled) "yes" }}
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ template "name" . }}-canary-env-config-map
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ template "name" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+data:
+  K8S_APP_NAME: "{{ template "name" . }}"
+  K8S_APP_ENV:  "{{ default "stage" .Values.appEnv }}"
+  OTA_EXPORTER_JAEGER_ENDPOINT: "jaeger-collector.observability:14250"
+  OTA_EXPORTER_JAEGER_SERVICE_NAME: "{{ template "name" . }}.{{ .Release.Namespace }}"
+  OTA_EXPORTER_JAR: "exporter.jar"
+  OTA_PROPAGATORS: "b3"
+  DD_RUNTIME_METRICS_ENABLED: "true"
+  DD_TRACE_ANALYTICS_ENABLED: "true"
+  DD_INTEGRATIONS_ENABLED: "true"
+  DD_SERVICE_NAME: "{{ template "name" . }}"
+  DD_SERVICE: "{{ template "name" . }}"
+  DD_ENV: "{{ default "stage" .Values.appEnv }}"
+  DD_TRACE_GLOBAL_TAGS: "env:{{ default "stage" .Values.appEnv }}"
+  {{- range $p := .Values.deployment.env}}
+  {{ .name }}: {{ .value | quote}}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
