@@ -49,10 +49,10 @@ pipeline {
         }
       steps {
           script{
-            def URL = "${DOCKER_REGISTRY}/${ORG}/${APP_NAME}:${VERSION}"
+            def URL = "${DOCKER_REGISTRY}/${PROD_ORG}/${APP_NAME}:${VERSION}"
             buildDockerfile("${APP_NAME}", URL, "prod")
             pushDockerImage(URL)
-            updateArtifact("${DOCKER_REGISTRY}/${ORG}/${APP_NAME}", "${VERSION}", "prod")
+            updateArtifact("${DOCKER_REGISTRY}/${PROD_ORG}/${APP_NAME}", "${VERSION}", "prod")
             timeout(time: 10, unit: 'MINUTES') {
                 input(id: "Deploy Gate", message: "Deploy ${APP_NAME}?", ok: 'Deploy')
             }
