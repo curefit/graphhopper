@@ -14,7 +14,7 @@ deployment:
 istio:
   internal:
     hosts:
-    - graphhopper.production.cure.fit.internal
+    - graphhopper.production.eatfit.internal
     timeout: 360s
 service:
   expose:

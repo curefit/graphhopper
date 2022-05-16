@@ -1,1 +1,0 @@
-helm push . curefit-prod --username admin --password admin@123

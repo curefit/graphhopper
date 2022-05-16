@@ -4,10 +4,12 @@ pipeline {
     }
   environment {
     ORG = 'curefoods-infra'
+    PROD_ORG = 'curefoods-infra-prod'
     DOCKER_REGISTRY = 'gcr.io'
     APP_NAME = 'graphhopper'
-    NPM_TOKEN = credentials('npm-token')
     GITHUB_NPM_TOKEN = credentials('github-npm-token')
+    SERVICE_ACCOUNT_CRED_STAGE = credentials('service-account-credentials-stage')
+    SERVICE_ACCOUNT_CRED_PROD = credentials('service-account-credentials-prod')
     AWS_CRED = credentials('cf-superuser')
     }
   stages {
@@ -22,7 +24,7 @@ pipeline {
             buildDockerfile("${APP_NAME}", URL, "stage")
             pushDockerImage(URL)
             updateArtifact("${DOCKER_REGISTRY}/${ORG}/${APP_NAME}", "${VERSION}", "stage")
-            deploy("${APP_NAME}", "${VERSION}")
+            deployV2(APP_NAME, VERSION, ORG, "stage")
             }
           }
       };
@@ -41,7 +43,7 @@ pipeline {
             }
           };
     stage('Prepare Docker Image for Production Environment') {
-      when{ branch 'master'; }
+      when{ branch 'curefoods-migration-gcp-master'; }
        environment {
         VERSION = "$BUILD_NUMBER"
         }
@@ -51,8 +53,12 @@ pipeline {
             buildDockerfile("${APP_NAME}", URL, "prod")
             pushDockerImage(URL)
             updateArtifact("${DOCKER_REGISTRY}/${ORG}/${APP_NAME}", "${VERSION}", "prod")
+            timeout(time: 10, unit: 'MINUTES') {
+                input(id: "Deploy Gate", message: "Deploy ${APP_NAME}?", ok: 'Deploy')
             }
+            deployV2(APP_NAME, VERSION, PROD_ORG, "prod")
           }
+        }
       };
   }
   post {
@@ -63,7 +69,7 @@ pipeline {
 }
 
 void buildDockerfile(appName, tag, env){
-  sh "sudo docker build -t ${tag} --build-arg NPM_TOKEN=${NPM_TOKEN} --build-arg GITHUB_NPM_TOKEN=${GITHUB_NPM_TOKEN} --build-arg AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} --build-arg AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --build-arg ENVIRONMENT=${env} --build-arg APP_NAME=${appName} --network host ."
+  sh "sudo docker build -t ${tag} --build-arg GITHUB_NPM_TOKEN=${GITHUB_NPM_TOKEN} --build-arg AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} --build-arg AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --build-arg ENVIRONMENT=${env} --build-arg APP_NAME=${appName} --network host ."
 }
 
 void pushDockerImage(tag){
@@ -80,14 +86,16 @@ void updateArtifact(repo, tag, env) {
     archiveArtifacts 'build.properties'
 }
 
-void deploy(APP_NAME,tag) {
+void deployV2(APP_NAME, tag, org, env) {
+  def SERVICE_ACCOUNT_CRED="${SERVICE_ACCOUNT_CRED_STAGE}"
+  if(env == "prod") {
+    SERVICE_ACCOUNT_CRED="${SERVICE_ACCOUNT_CRED_PROD}"
+  }
     sh """
-    helm version
-    echo APP_NAME="${APP_NAME}"
-    find . -maxdepth 1 ! -name 'cd' ! -name '.' -exec rm -rf {} +
+    find . -maxdepth 1 ! -name 'cd' ! -name "*.yaml" ! -name '.' -exec rm -rf {} +
     cd cd
-    sed -i "s/<TAG_NAME>/${tag}/g" values.yaml
-    cat values.yaml
-    helm upgrade "${APP_NAME}" -n "${APP_NAME}" .
+    find . -maxdepth 1 ! -name 'deploy.sh' ! -name '.' -exec rm -rf {} +
+    chmod +x deploy.sh
+    ./deploy.sh ${APP_NAME} ${env} ${tag} ${SERVICE_ACCOUNT_CRED} ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_ACCESS_KEY} "${DOCKER_REGISTRY}/${org}/${APP_NAME}"
     """
 }
