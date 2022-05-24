@@ -53,7 +53,7 @@ pipeline {
             buildDockerfile("${APP_NAME}", URL, "prod")
             pushDockerImage(URL)
             updateArtifact("${DOCKER_REGISTRY}/${PROD_ORG}/${APP_NAME}", "${VERSION}", "prod")
-            timeout(time: 10, unit: 'MINUTES') {
+            timeout(time: 30, unit: 'MINUTES') {
                 input(id: "Deploy Gate", message: "Deploy ${APP_NAME}?", ok: 'Deploy')
             }
             deployV2(APP_NAME, VERSION, PROD_ORG, "prod")
