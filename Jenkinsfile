@@ -14,7 +14,7 @@ pipeline {
     }
   stages {
     stage('Prepare Docker Image for Stage Environment') {
-      when { branch 'curefoods-migration-gcp' }
+      when { branch 'gcpStage' }
       environment {
         VERSION = "$BUILD_NUMBER-$BRANCH_NAME".replaceAll('_','-')
         }
