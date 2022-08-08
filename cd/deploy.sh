@@ -51,7 +51,7 @@ else
 fi
 
 REPO_NAME="curefoods-k8s-templates"
-git clone git@github.com:curefit/${REPO_NAME}.git ${REPO_NAME}
+git clone -b node_scale_down git@github.com:curefit/${REPO_NAME}.git ${REPO_NAME}
 
 cd ${REPO_NAME}
 cd chart
