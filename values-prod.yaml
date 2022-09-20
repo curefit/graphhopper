@@ -6,11 +6,11 @@ deployment:
   probePort: 8989
   resources:
     limits:
-      cpu: 2
-      memory: 5000Mi
+      cpu: 1.5
+      memory: 4500Mi
     requests:
-      cpu: 1
-      memory: 3500Mi
+      cpu: 0.5
+      memory: 3000Mi
 istio:
   internal:
     hosts:
