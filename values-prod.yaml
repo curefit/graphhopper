@@ -19,3 +19,7 @@ istio:
 service:
   expose:
   - 8989
+scaling:
+  targetCPUUtilPercentage: 70
+  minReplicas: 2
+  maxReplicas: 3
