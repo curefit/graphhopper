@@ -1,6 +1,6 @@
 deployment:
   labels:
-    billing: eat
+    billing: cult
     sub-billing: graphhopper
   probePath: /route?point=12.980269%2C77.694232&point=12.979178%2C77.69725&type=json&locale=en-GB&vehicle=car&weighting=fastest&elevation=false
   probePort: 8989
@@ -22,4 +22,18 @@ service:
 scaling:
   targetCPUUtilPercentage: 70
   minReplicas: 2
-  maxReplicas: 3
+  maxReplicas: 5
+
+support:
+  slack-channel: cult-is-back-dev
+  mailing-list: cult-is-back-dev@curefit.com
+
+pod-id: cult-app-growth
+
+repository:
+  url: https://github.com/curefit/graphhopper
+
+tags:
+  billing: cult-gx
+
+
