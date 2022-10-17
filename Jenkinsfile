@@ -48,6 +48,22 @@ pipeline {
             }
           }
       };
+
+    stage('Prepare Docker Image for Alpha Environment') {
+      when{ branch 'alpha'; }
+      environment {
+        RELEASE_VERSION = "$BUILD_NUMBER"
+        }
+      steps {
+          script{
+            def URL = "${DOCKER_REGISTRY}/${ORG}/${APP_NAME}:${RELEASE_VERSION}"
+            buildDockerfile("${APP_NAME}", URL, "alpha")
+            pushDockerImage(URL)
+            updateArtifact("${DOCKER_REGISTRY}/${ORG}/${APP_NAME}", "${RELEASE_VERSION}", "alpha")
+            }
+          }
+      };
+    
 }
   post {
     success {
