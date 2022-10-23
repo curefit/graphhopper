@@ -6,11 +6,11 @@ deployment:
   probePort: 8989
   resources:
     limits:
-      cpu: 1.5
-      memory: 4500Mi
+      cpu: 2.5
+      memory: 5500Mi
     requests:
-      cpu: 0.5
-      memory: 3000Mi
+      cpu: 1
+      memory: 4000Mi
 istio:
   internal:
     hosts:
@@ -19,3 +19,8 @@ istio:
 service:
   expose:
   - 8989
+scalingOverride:
+  enabled: "true"
+  averageUtilization: 50
+  minReplicas: 4
+  maxReplicas: 100
