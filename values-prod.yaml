@@ -9,8 +9,8 @@ deployment:
       cpu: 1.5
       memory: 4500Mi
     requests:
-      cpu: 0.5
-      memory: 3000Mi
+      cpu: 0.2
+      memory: 2500Mi
 istio:
   internal:
     hosts:
