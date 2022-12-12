@@ -19,3 +19,5 @@ istio:
 service:
   expose:
   - 8989
+
+isProdLogsEnabled: "false"
