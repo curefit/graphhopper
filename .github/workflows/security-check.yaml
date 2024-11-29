@@ -1,0 +1,31 @@
+name: Security integration check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - master
+      - alpha
+
+jobs:
+  security-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for vulnerabilities
+        id: "check"
+        uses: curefit/vulnerability-check-action@master
+        continue-on-error: true
+        with:
+          dependabot_token: ${{ secrets.DEPENDABOT_TOKEN }}
+          org_name: ${{ github.repository_owner }}
+          repo_name: ${{ github.event.repository.name }}
+          severity: "critical"
+          count: 1
+
+      - name: Require approval if vulnerabilities found
+        if: steps.check.outcome == 'failure'
+        uses: curefit/require-team-approval-action@master
+        with:
+          github_token: ${{ secrets.WORKFLOW_TOKEN }}
+          org_name: ${{ github.repository_owner }}
+          team_name: "security-leads"
