@@ -1,0 +1,26 @@
+name: SecOpsCheck
+
+on:
+  push:
+    branches:
+      - master
+      - alpha
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - master
+      - alpha
+  pull_request_review:
+    types: [submitted]  # Runs when a review is submitted
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: read
+
+jobs:
+  call-template:
+    uses: curefit/actions-template/.github/workflows/security-workflow-template.yml@master
+    with:
+      branch: "${{ github.event.pull_request.head.ref || github.ref_name }}"
+    secrets: inherit
