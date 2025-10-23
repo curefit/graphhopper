@@ -28,12 +28,10 @@ support:
   slack-channel: cult-is-back-dev
   mailing-list: cult-is-back-dev@curefit.com
 
-pod-id: cult-app-growth
+pod-id: member-experience
 
 repository:
   url: https://github.com/curefit/graphhopper
 
 tags:
-  billing: cult-gx
-
-
+  billing: member-experience
