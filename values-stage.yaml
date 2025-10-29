@@ -23,3 +23,8 @@ istio:
 service:
   expose:
   - 8989
+
+pod-id: platform
+
+tags:
+  billing: platform
