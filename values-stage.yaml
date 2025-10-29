@@ -24,7 +24,7 @@ service:
   expose:
   - 8989
 
-pod-id: platform
+pod-id: supply
 
 tags:
-  billing: platform
+  billing: supply
