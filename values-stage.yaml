@@ -23,3 +23,20 @@ istio:
 service:
   expose:
   - 8989
+
+scaling:
+  scaleUpAtCPU: 0.5
+  minReplicas: 1
+  maxReplicas: 2
+  keda:
+    triggers:
+      - type: cpu
+        metadata:
+          value: "550m"
+        metricType: AverageValue # Allowed types are 'Utilization' or 'AverageValue'
+      - type: cron # scale up from 8:40am-6:20pm
+        metadata:
+          timezone: Asia/Kolkata
+          start: 40 8 * * *
+          end: 20 18 * * *
+          desiredReplicas: "1"
