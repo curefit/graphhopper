@@ -1,0 +1,23 @@
+name: Reset stage branch
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 18 * * 6'
+
+jobs:
+  stage_reset:
+    runs-on: ubuntu-latest
+    steps:
+      - name: fail if branch is not master
+        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master'
+        run: |
+          echo "This workflow should not be triggered with workflow_dispatch on a branch other than master"
+          exit 1
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.WORKFLOW_TOKEN }}
+      - name: reset stage with master
+        run: git fetch origin stage && git fetch origin master && git checkout stage && git reset --hard origin/master && git push origin stage --force
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}

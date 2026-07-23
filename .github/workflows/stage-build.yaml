@@ -1,0 +1,22 @@
+name: "Stage Build and Deploy"
+
+on:
+  push:
+    branches:
+      - "stage"
+    paths-ignore:
+      - "values-stage.yaml"
+      - "values-alpha.yaml"
+      - "values-prod.yaml"
+      
+jobs:
+  call-template:
+    uses: curefit/actions-template/.github/workflows/gcp-java-amd64-general.yaml@master
+    secrets: inherit
+    with:
+      branch: "stage"
+      java_version: 8
+      app_name: "graphhopper"
+      environment: "stage"
+      org: "curefit"
+      spinnaker_webhook: "graphhopper-stage"
