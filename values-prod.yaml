@@ -1,9 +1,11 @@
 deployment:
   labels:
-    billing: eat
+    billing: cult
     sub-billing: graphhopper
   probePath: /route?point=12.980269%2C77.694232&point=12.979178%2C77.69725&type=json&locale=en-GB&vehicle=car&weighting=fastest&elevation=false
   probePort: 8989
+  podAnnotations:
+    iam.amazonaws.com/role: arn:aws:iam::035243212545:role/k8s-graphhopper-prod
   resources:
     limits:
       cpu: 2
@@ -19,3 +21,19 @@ istio:
 service:
   expose:
   - 8989
+scaling:
+  targetCPUUtilPercentage: 70
+  minReplicas: 2
+  maxReplicas: 5
+
+support:
+  slack-channel: cult-is-back-dev
+  mailing-list: cult-is-back-dev@curefit.com
+
+pod-id: member-experience
+
+repository:
+  url: https://github.com/curefit/graphhopper
+
+tags:
+  billing: member-experience
