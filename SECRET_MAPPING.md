@@ -1,7 +1,5 @@
 # graphhopper Secret Mapping
 
-## default
+Secret values are provisioned in the deployment secret store and are intentionally not committed to this repository.
 
-| Repo Name | App Name | Secrets |
-| --- | --- | --- |
-| graphhopper | no namespace found | NEW_RELIC_LICENSE_KEY:60832785884bf64d435e94a934d1b7e9c800f4e1 |
+The migrated license credential is referenced by the environment-variable placeholder in the application configuration. Rotate it after provisioning.
