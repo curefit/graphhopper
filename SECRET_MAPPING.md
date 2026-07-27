@@ -1,5 +1,27 @@
-# graphhopper Secret Mapping
+# GraphHopper Secret Mapping
 
-Secret values are provisioned in the deployment secret store and are intentionally not committed to this repository.
+This document maps the New Relic license key used by GraphHopper to the environment variables DevOps must provision. It contains no secret values.
 
-The migrated license credential is referenced by the environment-variable placeholder in the application configuration. Rotate it after provisioning.
+## PRODUCTION
+
+| GCP secret key | Expected value |
+|---|---|
+| NEW_RELIC_LICENSE_KEY | New Relic license key used by the production deployment |
+
+## ALPHA
+
+| GCP secret key | Expected value |
+|---|---|
+| NEW_RELIC_LICENSE_KEY | New Relic license key used by the alpha deployment |
+
+## STAGE
+
+| GCP secret key | Expected value |
+|---|---|
+| NEW_RELIC_LICENSE_KEY | New Relic license key used by the stage deployment |
+
+## Runtime wiring reference
+
+| GCP secret key | Configuration path(s) |
+|---|---|
+| NEW_RELIC_LICENSE_KEY | `newrelic/newrelic.yml` -> `common.license_key` |
