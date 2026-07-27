@@ -1,27 +1,37 @@
 # GraphHopper Secret Mapping
 
-This document maps the New Relic license key used by GraphHopper to the environment variables DevOps must provision. It contains no secret values.
+Secret values are provisioned by the deployment or build environment and are intentionally not committed to this repository.
 
 ## PRODUCTION
 
-| GCP secret key | Expected value |
+| Environment variable | Purpose |
 |---|---|
-| NEW_RELIC_LICENSE_KEY | New Relic license key used by the production deployment |
+| NEW_RELIC_LICENSE_KEY | New Relic agent license |
+| CUREFIT_API_GRAPHHOPPER_KEY | GraphHopper integration-test API key |
+| CUREFIT_API_LYRK_KEY | Lyrk tile-provider API key for the web bundle |
+| CUREFIT_API_OMNISCALE_KEY | Omniscale tile-provider API key for the web bundle |
 
 ## ALPHA
 
-| GCP secret key | Expected value |
+| Environment variable | Purpose |
 |---|---|
-| NEW_RELIC_LICENSE_KEY | New Relic license key used by the alpha deployment |
+| NEW_RELIC_LICENSE_KEY | New Relic agent license |
+| CUREFIT_API_GRAPHHOPPER_KEY | GraphHopper integration-test API key |
+| CUREFIT_API_LYRK_KEY | Lyrk tile-provider API key for the web bundle |
+| CUREFIT_API_OMNISCALE_KEY | Omniscale tile-provider API key for the web bundle |
 
 ## STAGE
 
-| GCP secret key | Expected value |
+| Environment variable | Purpose |
 |---|---|
-| NEW_RELIC_LICENSE_KEY | New Relic license key used by the stage deployment |
+| NEW_RELIC_LICENSE_KEY | New Relic agent license |
+| CUREFIT_API_GRAPHHOPPER_KEY | GraphHopper integration-test API key |
+| CUREFIT_API_LYRK_KEY | Lyrk tile-provider API key for the web bundle |
+| CUREFIT_API_OMNISCALE_KEY | Omniscale tile-provider API key for the web bundle |
 
-## Runtime wiring reference
+## Wiring
 
-| GCP secret key | Configuration path(s) |
-|---|---|
-| NEW_RELIC_LICENSE_KEY | `newrelic/newrelic.yml` -> `common.license_key` |
+- `newrelic/newrelic.yml` reads `NEW_RELIC_LICENSE_KEY` at runtime.
+- `client-hc/src/test/java/com/graphhopper/api/GraphHopperWebIT.java` reads `CUREFIT_API_GRAPHHOPPER_KEY`.
+- `web/src/main/resources/assets/js/config/options.js` reads the tile-provider variables during the Browserify build.
+- The web UI falls back to OpenStreetMap when `CUREFIT_API_OMNISCALE_KEY` is not supplied.
