@@ -1,19 +1,37 @@
-# graphhopper Secret Mapping
+# GraphHopper Secret Mapping
 
-## default
+Secret values are provisioned by the deployment or build environment and are intentionally not committed to this repository.
 
-| Repo Name | App Name | Secrets |
-| --- | --- | --- |
-| graphhopper | no namespace found | NEW_RELIC_LICENSE_KEY:60832785884bf64d435e94a934d1b7e9c800f4e1, CUREFIT_API_GRAPHHOPPER_KEY:78da6e9a-273e-43d1-bdda-8f24e007a1fa, CUREFIT_API_LYRK_KEY:6e8cfef737a140e2a58c8122aaa26077, CUREFIT_API_OMNISCALE_KEY:mapsgraph-bf48cc0b |
+## PRODUCTION
 
-## alpha
+| Environment variable | Purpose |
+|---|---|
+| NEW_RELIC_LICENSE_KEY | New Relic agent license |
+| CUREFIT_API_GRAPHHOPPER_KEY | GraphHopper integration-test API key |
+| CUREFIT_API_LYRK_KEY | Lyrk tile-provider API key for the web bundle |
+| CUREFIT_API_OMNISCALE_KEY | Omniscale tile-provider API key for the web bundle |
 
-| Repo Name | App Name | Secrets |
-| --- | --- | --- |
-| graphhopper | no namespace found | NEW_RELIC_LICENSE_KEY:60832785884bf64d435e94a934d1b7e9c800f4e1, CUREFIT_API_GRAPHHOPPER_KEY:78da6e9a-273e-43d1-bdda-8f24e007a1fa, CUREFIT_API_LYRK_KEY:6e8cfef737a140e2a58c8122aaa26077, CUREFIT_API_OMNISCALE_KEY:mapsgraph-bf48cc0b |
+## ALPHA
 
-## stage
+| Environment variable | Purpose |
+|---|---|
+| NEW_RELIC_LICENSE_KEY | New Relic agent license |
+| CUREFIT_API_GRAPHHOPPER_KEY | GraphHopper integration-test API key |
+| CUREFIT_API_LYRK_KEY | Lyrk tile-provider API key for the web bundle |
+| CUREFIT_API_OMNISCALE_KEY | Omniscale tile-provider API key for the web bundle |
 
-| Repo Name | App Name | Secrets |
-| --- | --- | --- |
-| graphhopper | no namespace found | NEW_RELIC_LICENSE_KEY:60832785884bf64d435e94a934d1b7e9c800f4e1, CUREFIT_API_GRAPHHOPPER_KEY:78da6e9a-273e-43d1-bdda-8f24e007a1fa, CUREFIT_API_LYRK_KEY:6e8cfef737a140e2a58c8122aaa26077, CUREFIT_API_OMNISCALE_KEY:mapsgraph-bf48cc0b |
+## STAGE
+
+| Environment variable | Purpose |
+|---|---|
+| NEW_RELIC_LICENSE_KEY | New Relic agent license |
+| CUREFIT_API_GRAPHHOPPER_KEY | GraphHopper integration-test API key |
+| CUREFIT_API_LYRK_KEY | Lyrk tile-provider API key for the web bundle |
+| CUREFIT_API_OMNISCALE_KEY | Omniscale tile-provider API key for the web bundle |
+
+## Wiring
+
+- `newrelic/newrelic.yml` reads `NEW_RELIC_LICENSE_KEY` at runtime.
+- `client-hc/src/test/java/com/graphhopper/api/GraphHopperWebIT.java` reads `CUREFIT_API_GRAPHHOPPER_KEY`.
+- `web/src/main/resources/assets/js/config/options.js` reads the tile-provider variables during the Browserify build.
+- The web UI falls back to OpenStreetMap when `CUREFIT_API_OMNISCALE_KEY` is not supplied.
