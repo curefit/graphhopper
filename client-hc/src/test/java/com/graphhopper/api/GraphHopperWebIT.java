@@ -27,7 +27,7 @@ import static org.junit.Assert.*;
  */
 public class GraphHopperWebIT {
 
-    public static final String KEY = System.getProperty("key", System.getenv("CUREFIT_API_GRAPHHOPPER_KEY"));
+    public static final String KEY = System.getProperty("key", System.getenv("GRAPHHOPPER_API_KEY"));
 
     private final GraphHopperWeb gh = new GraphHopperWeb();
     private final GraphHopperMatrixWeb ghMatrix = new GraphHopperMatrixWeb();

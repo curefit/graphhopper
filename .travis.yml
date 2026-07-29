@@ -36,7 +36,7 @@ before_script:
 before_script:
   - _JAVA_OPTIONS=
   - "mvn --version"
-  - 'if [ -z "${CUREFIT_API_GRAPHHOPPER_KEY:-}" ]; then echo "CUREFIT_API_GRAPHHOPPER_KEY must be configured as a Travis secret for GraphHopperWebIT"; exit 1; fi'
+  - 'if [ -z "${GRAPHHOPPER_API_KEY:-}" ]; then echo "GRAPHHOPPER_API_KEY must be configured as a Travis secret for GraphHopperWebIT"; exit 1; fi'
 script:
   - "mvn clean test verify checkstyle:check findbugs:check forbiddenapis:check -B"
 

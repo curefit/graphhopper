@@ -30,7 +30,7 @@ var formatTools=require("./tools/format.js"),GHInput=require("./graphhopper/GHIn
 
 },{"./graphhopper/GHInput.js":14,"./graphhopper/GHRoute.js":16,"./map.js":25,"./tools/format.js":29}],11:[function(require,module,exports){
 (function (process){(function (){
-exports.options={environment:"development",routing:{host:"",api_key:""},geocoding:{host:"",api_key:""},thunderforest:{api_key:""},lyrk:{api_key:process.env.CUREFIT_API_LYRK_KEY||""},omniscale:{api_key:process.env.CUREFIT_API_OMNISCALE_KEY||""}};
+exports.options={environment:"development",routing:{host:"",api_key:""},geocoding:{host:"",api_key:""},thunderforest:{api_key:""},lyrk:{api_key:process.env.LYRK_API_KEY||""},omniscale:{api_key:process.env.OMNISCALE_API_KEY||""}};
 
 }).call(this)}).call(this,require('_process'))
 },{"_process":9}],12:[function(require,module,exports){
