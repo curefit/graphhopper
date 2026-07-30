@@ -23,6 +23,7 @@ provisioning time.
 | `NEW_RELIC_LICENSE_KEY` | `NEW_RELIC_LICENSE_KEY` | New Relic Java agent license key for the production deployment. |
 | `LYRK_API_KEY` | `LYRK_API_KEY` | Lyrk tile-server API key for the production frontend bundle. |
 | `OMNISCALE_API_KEY` | `OMNISCALE_API_KEY` | Omniscale tile-server API key for the production frontend bundle. |
+| `GRAPHHOPPER_API_KEY` | `GRAPHHOPPER_API_KEY` | GraphHopper Directions API key used by GraphHopperWebIT integration tests. |
 
 ## Alpha
 
@@ -31,6 +32,7 @@ provisioning time.
 | `NEW_RELIC_LICENSE_KEY` | `NEW_RELIC_LICENSE_KEY` | New Relic Java agent license key for the alpha deployment. |
 | `LYRK_API_KEY` | `LYRK_API_KEY` | Lyrk tile-server API key for the alpha frontend bundle. |
 | `OMNISCALE_API_KEY` | `OMNISCALE_API_KEY` | Omniscale tile-server API key for the alpha frontend bundle. |
+| `GRAPHHOPPER_API_KEY` | `GRAPHHOPPER_API_KEY` | GraphHopper Directions API key used by GraphHopperWebIT integration tests. |
 
 ## Stage
 
@@ -39,6 +41,7 @@ provisioning time.
 | `NEW_RELIC_LICENSE_KEY` | `NEW_RELIC_LICENSE_KEY` | New Relic Java agent license key for the stage deployment. |
 | `LYRK_API_KEY` | `LYRK_API_KEY` | Lyrk tile-server API key for the stage frontend bundle. |
 | `OMNISCALE_API_KEY` | `OMNISCALE_API_KEY` | Omniscale tile-server API key for the stage frontend bundle. |
+| `GRAPHHOPPER_API_KEY` | `GRAPHHOPPER_API_KEY` | GraphHopper Directions API key used by GraphHopperWebIT integration tests. |
 
 ## Build-time injection
 
@@ -53,3 +56,26 @@ The `New Relic` agent reads `${NEW_RELIC_LICENSE_KEY}` directly from
 `newrelic/newrelic.yml` at JVM startup; the deploy job must set this
 env var in the container's environment (or pass it via
 `-Dnewrelic.environment=${NEW_RELIC_LICENSE_KEY}` to the JVM args).
+
+## CI integration-test key
+
+`GRAPHHOPPER_API_KEY` is consumed only by
+`client-hc/src/test/java/com/graphhopper/api/GraphHopperWebIT.java`
+(integration test). The new fallback chain is:
+
+1. `System.getProperty("key")` (set via `-Dkey=...` on the Maven CLI)
+2. `System.getenv("GRAPHHOPPER_API_KEY")` (set as a CI secret)
+
+The literal value that was previously the fallback
+(`78da6e9a-...`) has been removed. The Travis configuration in
+`.travis.yml` now fail-fasts when `GRAPHHOPPER_API_KEY` is unset
+instead of substituting a hardcoded literal:
+
+```
+- 'if [ -z "${GRAPHHOPPER_API_KEY:-}" ]; then echo "GRAPHHOPPER_API_KEY must be configured as a Travis secret for GraphHopperWebIT"; exit 1; fi'
+```
+
+The Travis build environment must therefore set `GRAPHHOPPER_API_KEY`
+under the project's Travis settings (or whatever CI provider replaces
+Travis for this repo). DevOps confirms the integration-test key value
+at provisioning time.
