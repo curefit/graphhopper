@@ -1,18 +1,20 @@
 var ghenv = require("./options.js").options;
+var lyrkAddition = '';
+if (ghenv.lyrk.api_key)
+    lyrkAddition = '?apikey=' + ghenv.lyrk.api_key;
+
 var tfAddition = '';
 if (ghenv.thunderforest.api_key)
     tfAddition = '?apikey=' + ghenv.thunderforest.api_key;
 
-var osAPIKey = 'mapsgraph-bf48cc0b';
-if (ghenv.omniscale.api_key)
-    osAPIKey = ghenv.omniscale.api_key;
+var osAPIKey = ghenv.omniscale.api_key;
 
 var osmAttr = '&copy; <a href="http://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors';
 
 // Automatically enable high-DPI tiles if provider and browser support it.
 var retinaTiles = L.Browser.retina;
 
-var lyrk = L.tileLayer('https://tiles.lyrk.org/' + (retinaTiles ? 'lr' : 'ls') + '/{z}/{x}/{y}?apikey=6e8cfef737a140e2a58c8122aaa26077', {
+var lyrk = L.tileLayer('https://tiles.lyrk.org/' + (retinaTiles ? 'lr' : 'ls') + '/{z}/{x}/{y}' + lyrkAddition, {
     attribution: osmAttr + ', <a href="https://geodienste.lyrk.de/">Lyrk</a>'
 });
 
