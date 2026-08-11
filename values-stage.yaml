@@ -14,7 +14,7 @@ deployment:
 externalSecrets:
   enabled: "true"
   names:
-    - "stage/cult/k8s-graphhopper"
+    - "stage_platforms_k8s-graphhopper"
 
 istio:
   internal:
