@@ -16,7 +16,7 @@ deployment:
 externalSecrets:
   enabled: "true"
   names:
-    - "prod/cult/k8s-graphhopper"
+    - "prod_platforms_k8s-graphhopper"
 
 istio:
   internal:
