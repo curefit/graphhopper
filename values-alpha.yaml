@@ -13,6 +13,11 @@ deployment:
     requests:
       cpu: 1
       memory: 3500Mi
+externalSecrets:
+  enabled: "true"
+  names:
+    - "alpha/cult/k8s-graphhopper"
+
 istio:
   internal:
     hosts:
