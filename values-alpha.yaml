@@ -15,8 +15,6 @@ deployment:
       memory: 3500Mi
 externalSecrets:
   enabled: "true"
-  names:
-    - "alpha_platforms_k8s-graphhopper"
 
 istio:
   internal:
