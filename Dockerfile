@@ -15,7 +15,7 @@ WORKDIR /${APP_NAME}
 RUN ./build_k8s.sh  /${APP_NAME}-deploy ${ENVIRONMENT}
 
 
-FROM openjdk:8-alpine
+FROM amazoncorretto:8-alpine
 
 ARG APP_NAME
 
@@ -24,7 +24,8 @@ ARG ENVIRONMENT
 ENV destination='/home/ubuntu/deployment'
 
 ENV TZ=Asia/Kolkata
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN apk add --no-cache tzdata && \
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 COPY --from=intermediate /${APP_NAME}-deploy/  ${destination}
 
