@@ -15,7 +15,7 @@ WORKDIR /${APP_NAME}
 RUN ./build_k8s.sh  /${APP_NAME}-deploy ${ENVIRONMENT}
 
 
-FROM amazoncorretto:8-alpine
+FROM amazoncorretto:8-alpine@sha256:ed85af3e8c340b3e2c9398634cd7e17b609998404b242781097601e5cb471878
 
 ARG APP_NAME
 
