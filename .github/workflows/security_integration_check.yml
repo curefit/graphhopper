@@ -1,10 +1,6 @@
 name: SecOpsCheck
 
 on:
-  push:
-    branches:
-      - master
-      - alpha
   pull_request:
     types: [opened, synchronize, reopened]
     branches:
