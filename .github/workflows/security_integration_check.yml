@@ -1,6 +1,8 @@
 name: SecOpsCheck
 
 on:
+  pull_request_review:
+    types: [submitted]  # Runs when a review is submitted
   pull_request:
     types: [opened, synchronize, reopened]
     branches:
