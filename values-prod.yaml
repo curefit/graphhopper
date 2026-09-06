@@ -30,10 +30,10 @@ support:
   slack-channel: cult-is-back-dev
   mailing-list: cult-is-back-dev@curefit.com
 
-pod-id: member-experience
+pod-id: supply
 
 repository:
   url: https://github.com/curefit/graphhopper
 
 tags:
-  billing: member-experience
+  billing: supply

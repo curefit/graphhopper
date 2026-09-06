@@ -21,3 +21,8 @@ istio:
 service:
   expose:
   - 8989
+
+pod-id: supply
+
+tags:
+  billing: supply
