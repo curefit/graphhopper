@@ -13,5 +13,6 @@ exports.options = {
     routing: {host: '', api_key: ''},
     geocoding: {host: '', api_key: ''},
     thunderforest: {api_key: ''},
-    omniscale: {api_key: ''}
+    lyrk: {api_key: process.env.LYRK_API_KEY || ''},
+    omniscale: {api_key: process.env.OMNISCALE_API_KEY || ''}
 };
