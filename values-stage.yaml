@@ -13,6 +13,9 @@ deployment:
     requests:
       cpu: 1
       memory: 3500Mi
+externalSecrets:
+  enabled: "true"
+
 istio:
   internal:
     hosts:
