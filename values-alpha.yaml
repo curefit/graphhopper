@@ -21,3 +21,8 @@ istio:
 service:
   expose:
   - 8989
+
+externalSecrets:
+  enabled: "true"
+  names:
+    - alpha_eat_k8s-graphhopper

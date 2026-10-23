@@ -37,3 +37,8 @@ repository:
 
 tags:
   billing: member-experience
+
+externalSecrets:
+  enabled: "true"
+  names:
+    - prod_cult_k8s-graphhopper
