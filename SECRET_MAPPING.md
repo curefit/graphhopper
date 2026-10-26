@@ -16,11 +16,12 @@ Secrets and name the JSON secrets using the convention in
 | --- | --- | --- |
 | alpha | `alpha_eat_k8s-graphhopper` | `NEW_RELIC_LICENSE_KEY` |
 | stage | `stage_eat_k8s-graphhopper` | `NEW_RELIC_LICENSE_KEY` |
-| prod | `prod_cult_k8s-graphhopper` | `NEW_RELIC_LICENSE_KEY` |
+| prod | `prod_eat_k8s-graphhopper` | `NEW_RELIC_LICENSE_KEY` |
 
-The names follow this repository's existing `billing` and `sub-billing` labels.
-Create the secret if absent; otherwise add the field while preserving existing
-fields. These names refer to JSON secret bundles, not standalone secrets named
+These are the established GraphHopper bundles confirmed during PR review.
+Production retains `prod_eat_k8s-graphhopper` despite the current `billing: cult`
+label; do not create a replacement `prod_cult` bundle. Add the field to the
+existing bundles while preserving their other fields. These names refer to JSON secret bundles, not standalone secrets named
 after the environment variable. Their existence, IAM access, and live External
 Secrets sync have not been verified from this workstation.
 

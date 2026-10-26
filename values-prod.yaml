@@ -41,4 +41,4 @@ tags:
 externalSecrets:
   enabled: "true"
   names:
-    - prod_cult_k8s-graphhopper
+    - prod_eat_k8s-graphhopper
