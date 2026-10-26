@@ -37,7 +37,6 @@ before_script:
   - _JAVA_OPTIONS=
   - "mvn --version"
   - 'export GRAPHHOPPER_API_KEY="${GRAPHHOPPER_API_KEY:-$API_KEY}"'
-  - ': "${GRAPHHOPPER_API_KEY:?Set GRAPHHOPPER_API_KEY in Travis settings}"'
 script:
   - "mvn clean test verify checkstyle:check findbugs:check forbiddenapis:check -B"
 

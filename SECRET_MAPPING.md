@@ -40,8 +40,11 @@ variable and exports it under the new name. Local tests support the same
 environment variable and retain the existing `-Dkey=...` override.
 
 This key is for vendor integration tests; it does not belong in the application
-pod's runtime secret bundle. The Travis guard fails before Maven if neither CI
-variable is set. Live vendor integration tests require a valid provisioned key
+pod's runtime secret bundle. Builds without a key still run unit tests; only the
+GraphHopper vendor integration tests are skipped, with a message naming the
+required environment variable and system-property overrides. Empty or
+whitespace-only keys are also treated as unconfigured. A configured key enables
+these tests automatically. Live vendor calls require a valid provisioned key
 and were not run as part of this migration.
 
 ## Optional browser tile provider: Lyrk

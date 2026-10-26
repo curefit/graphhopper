@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * @author Peter Karich
@@ -34,6 +35,8 @@ public class GraphHopperWebIT {
 
     @Before
     public void setUp() {
+        assumeTrue("Set GRAPHHOPPER_API_KEY or -Dkey to run GraphHopper integration tests",
+                KEY != null && !KEY.trim().isEmpty());
         gh.setKey(KEY);
         ghMatrix.setKey(KEY);
     }
