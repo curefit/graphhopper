@@ -26,9 +26,11 @@ Secrets sync have not been verified from this workstation.
 
 The bundled New Relic agent (3.40.0) reads `NEW_RELIC_LICENSE_KEY` directly;
 `newrelic.yml` has an empty license setting. No YAML placeholder interpolation,
-agent upgrade, or startup-script substitution is needed. Before rollout, confirm
-External Secrets sync succeeds and the pod receives a nonempty variable. After
-rollout, confirm New Relic reporting continues.
+agent upgrade, or startup-script substitution is needed. Both the foreground
+container launch and background launch attach `newrelic.jar` and select the
+requested New Relic environment. Before rollout, confirm External Secrets sync
+succeeds and the pod receives a nonempty variable. After rollout, confirm the
+running JVM has the agent attached and New Relic reporting continues.
 
 ## CI: GraphHopper integration tests
 
