@@ -3,7 +3,7 @@
 # PROD Setting : The G1GC Garbage collector is used initially, but based on the metrics and performance we can try -XX:+UseConcMarkSweepGC and keep whichever workds better.
 
 ENV=$1
-if [ $1 -eq "prod" ]
+if [ "$1" = "prod" ]
 then
    run_env="production"
 else

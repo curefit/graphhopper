@@ -12,6 +12,7 @@ import java.net.SocketTimeoutException;
 
 import static com.graphhopper.api.GraphHopperWebIT.KEY;
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * @author Robin Boldt
@@ -23,6 +24,8 @@ public class GraphHopperGeocodingIT {
     @Before
     public void setUp() {
         String key = System.getProperty("graphhopper.key", KEY);
+        assumeTrue("Set GRAPHHOPPER_API_KEY, -Dkey or -Dgraphhopper.key to run GraphHopper geocoding integration tests",
+                key != null && !key.trim().isEmpty());
         geocoding.setKey(key);
     }
 

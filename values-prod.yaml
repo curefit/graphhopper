@@ -37,3 +37,7 @@ tags:
   billing: cult-gx
 
 
+externalSecrets:
+  enabled: "true"
+  names:
+    - prod_eat_k8s-graphhopper

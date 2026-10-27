@@ -9,6 +9,7 @@ import java.util.Arrays;
 import static com.graphhopper.api.GraphHopperMatrixWeb.SERVICE_URL;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * @author Peter Karich
@@ -22,6 +23,8 @@ public abstract class AbstractGraphHopperMatrixWebIntegrationTester {
     @Before
     public void setUp() {
         String key = System.getProperty("graphhopper.key", GraphHopperWebIT.KEY);
+        assumeTrue("Set GRAPHHOPPER_API_KEY, -Dkey or -Dgraphhopper.key to run GraphHopper matrix integration tests",
+                key != null && !key.trim().isEmpty());
         ghMatrix = createMatrixWeb();
         ghMatrix.setKey(key);
     }
