@@ -5,33 +5,17 @@ license, the GraphHopper test key in Java and Travis, the Lyrk tile key in sourc
 and the shipped bundle, and the unused Mapbox example token. Unreported
 credentials and integrations are outside this change.
 
-## Runtime: New Relic
+## Unused New Relic credential
 
-Ensure the environment's GCP Secret Manager JSON secret contains
-`NEW_RELIC_LICENSE_KEY` before deployment. The values files enable External
-Secrets and name the JSON secrets using the convention in
-[cult-web-api-proxy](https://github.com/curefit/cult-web-api-proxy/pull/697).
+The committed New Relic license has been removed. New Relic is intentionally
+disabled: both application launch paths omit the agent, and `newrelic.yml` sets
+`agent_enabled: false` with an empty license. The unused agent files remain in
+the package to keep this change scoped.
 
-| Environment | GCP Secret Manager secret | JSON field / pod environment variable |
-| --- | --- | --- |
-| alpha | `alpha_eat_k8s-graphhopper` | `NEW_RELIC_LICENSE_KEY` |
-| stage | `stage_eat_k8s-graphhopper` | `NEW_RELIC_LICENSE_KEY` |
-| prod | `prod_eat_k8s-graphhopper` | `NEW_RELIC_LICENSE_KEY` |
-
-These are the established GraphHopper bundles confirmed during PR review.
-Production retains `prod_eat_k8s-graphhopper` despite the current `billing: cult`
-label; do not create a replacement `prod_cult` bundle. Add the field to the
-existing bundles while preserving their other fields. These names refer to JSON secret bundles, not standalone secrets named
-after the environment variable. Their existence, IAM access, and live External
-Secrets sync have not been verified from this workstation.
-
-The bundled New Relic agent (3.40.0) reads `NEW_RELIC_LICENSE_KEY` directly;
-`newrelic.yml` has an empty license setting. No YAML placeholder interpolation,
-agent upgrade, or startup-script substitution is needed. Both the foreground
-container launch and background launch attach `newrelic.jar` and select the
-requested New Relic environment. Before rollout, confirm External Secrets sync
-succeeds and the pod receives a nonempty variable. After rollout, confirm the
-running JVM has the agent attached and New Relic reporting continues.
+`NEW_RELIC_LICENSE_KEY` is not required. This migration needs no new GCP Secret
+Manager entries or External Secrets configuration. Earlier provisioning
+instructions for this key are superseded. Enabling telemetry later requires a
+separate change and a valid externally supplied license.
 
 ## CI: GraphHopper integration tests
 
