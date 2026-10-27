@@ -21,19 +21,22 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * @author Peter Karich
  */
 public class GraphHopperWebIT {
 
-    public static final String KEY = System.getProperty("key", "78da6e9a-273e-43d1-bdda-8f24e007a1fa");
+    public static final String KEY = System.getProperty("key", System.getenv("GRAPHHOPPER_API_KEY"));
 
     private final GraphHopperWeb gh = new GraphHopperWeb();
     private final GraphHopperMatrixWeb ghMatrix = new GraphHopperMatrixWeb();
 
     @Before
     public void setUp() {
+        assumeTrue("Set GRAPHHOPPER_API_KEY or -Dkey to run GraphHopper integration tests",
+                KEY != null && !KEY.trim().isEmpty());
         gh.setKey(KEY);
         ghMatrix.setKey(KEY);
     }

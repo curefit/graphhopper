@@ -23,3 +23,8 @@ istio:
 service:
   expose:
   - 8989
+
+externalSecrets:
+  enabled: "true"
+  names:
+    - stage_eat_k8s-graphhopper
