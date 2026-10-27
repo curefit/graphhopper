@@ -42,7 +42,7 @@ environment variable and retain the existing `-Dkey=...` override.
 
 This key is for vendor integration tests; it does not belong in the application
 pod's runtime secret bundle. Builds without a key still run unit tests; only the
-GraphHopper vendor integration tests are skipped, with a message naming the
+GraphHopper routing, geocoding, and matrix vendor integration tests are skipped, with a message naming the
 required environment variable and system-property overrides. Empty or
 whitespace-only keys are also treated as unconfigured. A configured key enables
 these tests automatically. Live vendor calls require a valid provisioned key
