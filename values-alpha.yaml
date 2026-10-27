@@ -23,8 +23,3 @@ scaling:
 targetCPUUtilPercentage: 70
 minReplicas: 1
 maxReplicas: 2
-
-externalSecrets:
-  enabled: "true"
-  names:
-    - alpha_eat_k8s-graphhopper
