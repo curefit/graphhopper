@@ -12,9 +12,11 @@ var osmAttr = '&copy; <a href="http://www.openstreetmap.org/copyright" target="_
 // Automatically enable high-DPI tiles if provider and browser support it.
 var retinaTiles = L.Browser.retina;
 
-var lyrk = L.tileLayer('https://tiles.lyrk.org/' + (retinaTiles ? 'lr' : 'ls') + '/{z}/{x}/{y}?apikey=6e8cfef737a140e2a58c8122aaa26077', {
-    attribution: osmAttr + ', <a href="https://geodienste.lyrk.de/">Lyrk</a>'
-});
+var lyrk;
+if (ghenv.lyrk && ghenv.lyrk.api_key)
+    lyrk = L.tileLayer('https://tiles.lyrk.org/' + (retinaTiles ? 'lr' : 'ls') + '/{z}/{x}/{y}?apikey=' + encodeURIComponent(ghenv.lyrk.api_key), {
+        attribution: osmAttr + ', <a href="https://geodienste.lyrk.de/">Lyrk</a>'
+    });
 
 var omniscale = L.tileLayer('https://maps.omniscale.net/v2/' +osAPIKey + '/style.default' + (retinaTiles ? '/hq.true' : '') + '/{z}/{x}/{y}.png', {
     layers: 'osm',
@@ -26,7 +28,7 @@ var openMapSurfer = L.tileLayer('http://korona.geog.uni-heidelberg.de/tiles/road
 });
 
 // Not an option as too fast over limit.
-// var mapbox= L.tileLayer('https://{s}.tiles.mapbox.com/v4/peterk.map-vkt0kusv/{z}/{x}/{y}' + (retinaTiles ? '@2x' : '') + '.png?access_token=pk.eyJ1IjoicGV0ZXJrIiwiYSI6IkdFc2FJd2MifQ.YUd7dS_gOpT3xrQnB8_K-w', {
+// var mapbox= L.tileLayer('https://{s}.tiles.mapbox.com/v4/peterk.map-vkt0kusv/{z}/{x}/{y}' + (retinaTiles ? '@2x' : '') + '.png?access_token=YOUR_MAPBOX_ACCESS_TOKEN', {
 //     attribution: osmAttr + ', <a href="https://www.mapbox.com/about/maps/">&copy; MapBox</a>'
 // });
 
@@ -78,12 +80,14 @@ var availableTileLayers = {
     "TF Cycle": thunderCycle,
     "TF Outdoors": thunderOutdoors,
     "TF Neighbourhood": thunderNeighbourhood,
-    "Lyrk": lyrk,
     "WanderReitKarte": wrk,
     "OpenMapSurfer": openMapSurfer,
     "Sorbian Language": sorbianLang,
     "OpenStreetMap.de": osmde
 };
+
+if (lyrk)
+    availableTileLayers.Lyrk = lyrk;
 
 module.exports.activeLayerName = "Omniscale";
 module.exports.defaultLayer = omniscale;

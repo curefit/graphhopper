@@ -156,7 +156,7 @@ echo "## now $ACTION. JAVA_OPTS=$JAVA_OPTS"
 if [[ "$ACTION" = "web" ]]; then
   export MAVEN_OPTS="$MAVEN_OPTS $JAVA_OPTS"
   if [[ "$RUN_BACKGROUND" == "true" ]]; then
-    exec "$JAVA" -javaagent:newrelic.jar -Dnewrelic.environment=${RUN_ENV} $JAVA_OPTS -Dgraphhopper.datareader.file="./osrm_location.osm.pbf" -Dgraphhopper.graph.location="./osrm_location.osm-gh" \
+    exec "$JAVA" $JAVA_OPTS -Dgraphhopper.datareader.file="./osrm_location.osm.pbf" -Dgraphhopper.graph.location="./osrm_location.osm-gh" \
                  $GH_WEB_OPTS -jar "$JAR" server $CONFIG <&- &
     
     if [[ "$GH_PID_FILE" != "" ]]; then
